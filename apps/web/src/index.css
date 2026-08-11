@@ -77,6 +77,7 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
 
 :root {
   --app-scrollbar-width: 6px;
+  --fade-size: 1.5rem;
   --app-scrollbar-thumb: rgb(217 217 217);
   --app-scrollbar-thumb-hover: rgb(191 191 191);
   /*
@@ -145,7 +146,7 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
   /* Duty-cycled indicator animations: long holds with stepped ramps, so the
      compositor updates discrete frames instead of every vsync. */
   --animate-status-pulse: status-pulse 2s infinite;
-  --animate-ghost-pulse: ghost-pulse 2.4s infinite;
+  --animate-ghost-pulse: ghost-pulse 2s infinite;
   --animate-status-ping: status-ping 2s infinite;
   --color-warning-foreground: var(--warning-foreground);
   --color-warning: var(--warning);
@@ -335,19 +336,9 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
     display: none;
   }
 
-  .sidebar-brand-stage {
-    display: none;
-  }
-
   @media (min-width: 48rem) {
     .sidebar-brand {
       display: flex;
-    }
-
-    @container sidebar-header (min-width: 15.75rem) {
-      .sidebar-brand-stage {
-        display: inline-flex;
-      }
     }
   }
 
@@ -824,6 +815,8 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
     background: color-mix(in srgb, var(--background) var(--glass-opacity), transparent);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    border-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+    box-shadow: 0 24px 64px -24px rgb(0 0 0 / 65%);
   }
 
   .dialog-backdrop {
@@ -844,27 +837,14 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
       var(--popover) 18%,
       color-mix(in srgb, var(--popover) var(--glass-opacity), transparent)
     );
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
     border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
     box-shadow: 0 16px 40px -18px rgb(0 0 0 / 55%);
   }
 
-  .dialog-glass {
-    border-color: color-mix(in srgb, var(--foreground) 10%, transparent);
-    box-shadow: 0 24px 64px -24px rgb(0 0 0 / 65%);
-  }
-
   .dark .dropdown-glass {
     box-shadow: 0 18px 44px -18px rgb(0 0 0 / 80%);
-  }
-
-  .dark .model-picker-surface.model-picker-surface {
-    background: color-mix(
-      in srgb,
-      var(--popover) 18%,
-      color-mix(in srgb, var(--popover) var(--glass-opacity), transparent)
-    );
   }
 
   .dark .dialog-glass {
@@ -1777,16 +1757,6 @@ code {
   );
 }
 
-.turn-chip-strip {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overscroll-behavior-x: contain;
-}
-
-.turn-chip-strip::-webkit-scrollbar {
-  display: none;
-}
-
 /* Reasoning select -- clickable label surface */
 label:has(> select#reasoning-effort) {
   position: relative;
@@ -2004,37 +1974,23 @@ label:has(> select#reasoning-effort) select {
   font-size: 0.75rem;
 }
 
-.chat-markdown pre {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--border) 78%, transparent) transparent;
-}
-
-.chat-markdown pre::-webkit-scrollbar {
-  height: 7px;
-}
-
-.chat-markdown pre::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.chat-markdown pre::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--border) 78%, transparent);
-}
-
+.chat-markdown pre,
 .markdown-file-link-tooltip-scroll {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--border) 78%, transparent) transparent;
 }
 
+.chat-markdown pre::-webkit-scrollbar,
 .markdown-file-link-tooltip-scroll::-webkit-scrollbar {
-  height: 6px;
+  height: var(--app-scrollbar-width);
 }
 
+.chat-markdown pre::-webkit-scrollbar-track,
 .markdown-file-link-tooltip-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
+.chat-markdown pre::-webkit-scrollbar-thumb,
 .markdown-file-link-tooltip-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: color-mix(in srgb, var(--border) 78%, transparent);
@@ -2165,7 +2121,13 @@ label:has(> select#reasoning-effort) select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .prompt-stash-count-enter {
+  .prompt-stash-count-enter,
+  .provider-update-pill-progress,
+  .ultrathink-frame::before,
+  .ultrathink-chroma,
+  .animate-status-pulse,
+  .animate-ghost-pulse,
+  .animate-status-ping {
     animation: none;
   }
   [data-slot="skeleton"]::after {
@@ -2198,7 +2160,6 @@ label:has(> select#reasoning-effort) select {
   --code-background: var(--background);
 }
 
-.diff-render-file,
 .diff-render-surface diffs-container {
   border: 0;
   border-radius: 0;
@@ -2278,31 +2239,6 @@ label:has(> select#reasoning-effort) select {
 
 .ultrathink-chroma {
   animation: ultrathink-chroma-shift 10s linear infinite;
-}
-
-.ultrathink-pill {
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    var(--ultrathink-spectrum) border-box;
-  background-size:
-    100% 100%,
-    220% 220%;
-  background-position:
-    0 0,
-    0% 50%;
-  animation: ultrathink-rainbow 10s linear infinite;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card) 82%, transparent);
-}
-
-.ultrathink-word {
-  display: inline-block;
-  color: transparent;
-  background-image: var(--ultrathink-spectrum);
-  background-size: 220% 220%;
-  background-position: 0% 50%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  animation: ultrathink-rainbow 10s linear infinite;
 }
 
 /* Composer chips are non-editable decorators, so the browser skips them when

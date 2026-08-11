@@ -286,7 +286,7 @@ function WorkflowScriptView({
           type="button"
           onClick={onClose}
           aria-label="Close script"
-          className="ml-auto text-muted-foreground hover:text-foreground"
+          className="ml-auto cursor-pointer text-muted-foreground hover:text-foreground"
         >
           <X aria-hidden className="size-3" />
         </button>
@@ -336,7 +336,7 @@ function PhaseSection({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         className={cn(
-          "mt-2 flex w-full items-center gap-1.5 rounded-sm px-1.5 text-left text-[.65rem] font-medium uppercase tracking-wider hover:bg-accent/40",
+          "mt-2 flex w-full cursor-pointer items-center gap-1.5 rounded-sm px-1.5 text-left text-[.65rem] font-medium uppercase tracking-wider hover:bg-accent/40",
           phase.state === "done"
             ? "text-success-foreground"
             : phase.state === "running"
@@ -406,7 +406,7 @@ function ExpandedWorkflowSection({
             type="button"
             onClick={() => setScriptOpen((value) => !value)}
             className={cn(
-              "rounded-sm border border-border/60 px-1 font-mono normal-case hover:text-foreground",
+              "cursor-pointer rounded-sm border border-border/60 px-1 font-mono normal-case hover:text-foreground",
               scriptOpen && "text-foreground",
             )}
             aria-expanded={scriptOpen}
@@ -421,7 +421,7 @@ function ExpandedWorkflowSection({
           type="button"
           onClick={onCollapse}
           aria-label="Collapse workflow"
-          className="text-muted-foreground hover:text-foreground"
+          className="cursor-pointer text-muted-foreground hover:text-foreground"
         >
           <ChevronDown aria-hidden className="size-3" />
         </button>
@@ -476,7 +476,7 @@ function CollapsedWorkflowSection({
       <button
         type="button"
         onClick={onExpand}
-        className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left hover:bg-accent/40"
+        className="flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 text-left hover:bg-accent/40"
         aria-expanded={false}
       >
         <StatusDot status={failed > 0 ? "failed" : group.workflow.status} />

@@ -362,7 +362,7 @@ function RightPanelEmptyState(props: {
                   )
                 }
                 className={cn(
-                  "relative flex w-full cursor-pointer flex-col items-start p-4 text-left transition hover:border-border hover:bg-accent/60",
+                  "relative flex w-full cursor-pointer flex-col items-start p-4 text-left transition-colors hover:border-border hover:bg-accent/60",
                   cardShellClass,
                   isHighlighted(action) && highlightedCardClass,
                 )}
@@ -380,7 +380,7 @@ function RightPanelEmptyState(props: {
               <div
                 key={action.label}
                 className={cn(
-                  "relative flex w-full flex-col items-start p-4 opacity-40",
+                  "relative flex w-full flex-col items-start p-4 opacity-64",
                   cardShellClass,
                 )}
               >

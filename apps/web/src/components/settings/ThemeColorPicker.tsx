@@ -292,7 +292,7 @@ function ThemeColorPickerPanel({
   };
 
   return (
-    <div className="w-72 bg-popover">
+    <div className="w-72">
       <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold text-foreground">{label}</p>
@@ -453,7 +453,7 @@ function ThemeColorPicker({
       />
       <PopoverPopup
         align="end"
-        className="overflow-hidden rounded-2xl border border-border/70 p-0 shadow-2xl [--viewport-inline-padding:0px] [&_[data-slot=popover-viewport]]:p-0"
+        className="overflow-hidden rounded-2xl p-0 [--viewport-inline-padding:0px] [&_[data-slot=popover-viewport]]:p-0"
         data-theme-editor-panel=""
         side="bottom"
         sideOffset={10}
@@ -499,7 +499,7 @@ export const ThemeColorField = memo(function ThemeColorField({
       <button
         aria-label={`${selected ? "Hide" : "Show"} ${label} usage`}
         aria-pressed={selected}
-        className="flex min-w-0 flex-1 cursor-pointer items-center rounded-md text-left text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex min-w-0 flex-1 cursor-pointer items-center rounded-md text-left text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
         onClick={() => onToggleSelected?.(role)}
         title={`${selected ? "Hide" : "Show"} where ${label} is used`}
         type="button"
@@ -516,7 +516,7 @@ export const ThemeColorField = memo(function ThemeColorField({
         <Input
           aria-invalid={!isColorValue}
           aria-label={`${label} hex value`}
-          className="w-28 shrink-0 rounded-md border-0 bg-black/10 font-mono text-xs text-foreground shadow-none focus-within:bg-black/15 focus-within:ring-0 dark:bg-black/20 dark:focus-within:bg-black/25 [&_[data-slot=input]]:text-right"
+          className="w-28 shrink-0 rounded-md border-0 bg-black/10 font-mono text-xs text-foreground shadow-none focus-within:bg-black/15 focus-within:ring-0 dark:bg-white/6 dark:focus-within:bg-white/10 [&_[data-slot=input]]:text-right"
           id={`${role}-hex`}
           nativeInput
           onChange={(event) => onChange(role, event.currentTarget.value)}

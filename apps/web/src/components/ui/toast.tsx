@@ -126,7 +126,7 @@ function CopyErrorButton({ text }: { text: string }) {
         render={
           <button
             aria-label={label}
-            className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md p-0 text-muted-foreground/80 transition-colors hover:text-muted-foreground"
+            className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md p-0 text-muted-foreground/80 outline-none transition-colors hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
             onClick={() => copyToClipboard(text)}
             type="button"
           />
@@ -158,7 +158,7 @@ function ToastExpandableSection({
     <div className="min-w-0">
       <button
         aria-expanded={open}
-        className="inline-flex cursor-pointer items-center gap-1 rounded-md py-0.5 text-left text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex cursor-pointer items-center gap-1 rounded-sm py-0.5 text-left text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
         onClick={() => setOpen((prev) => !prev)}
         type="button"
       >
@@ -677,7 +677,7 @@ function Toasts({ position }: { position: ToastPosition }) {
                 className={cn(
                   // `overflow-x: clip` avoids the CSS quirk where pairing `hidden` + `y: visible`
                   // forces `y` to `auto`. Expandable detail panels can extend below without being cut off.
-                  "pointer-events-auto min-h-0 overflow-y-visible pl-3.5 text-sm transition-opacity duration-250 [overflow-x:clip] data-expanded:opacity-100",
+                  "pointer-events-auto min-h-0 overflow-y-visible pl-3.5 text-sm transition-opacity duration-200 [overflow-x:clip] data-expanded:opacity-100",
                   stackedActionLayout
                     ? "flex flex-col gap-2 py-2.5 pr-3.5"
                     : cn("py-3", "flex items-center justify-between gap-1.5", inlineContentEndPad),

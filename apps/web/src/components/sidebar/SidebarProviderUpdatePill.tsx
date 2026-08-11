@@ -168,7 +168,7 @@ export function SidebarProviderUpdatePill() {
             <button
               type="button"
               aria-label={displayedView.description}
-              className="provider-update-main relative z-[1] flex h-full flex-1 items-center gap-2 px-2 text-left"
+              className="provider-update-main relative z-[1] flex h-full flex-1 cursor-pointer items-center gap-2 px-2 text-left"
               onClick={openProviderSettings}
             >
               {displayedView.tone === "loading" ? (
@@ -193,7 +193,7 @@ export function SidebarProviderUpdatePill() {
               <button
                 type="button"
                 aria-label="Dismiss provider update notice"
-                className="relative z-[1] mr-1 inline-flex size-5 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100"
+                className="relative z-[1] mr-1 inline-flex size-5 cursor-pointer items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100"
                 onClick={() => startExit(displayedView.key, null, displayedView.key)}
               >
                 <XIcon className="size-3.5" />

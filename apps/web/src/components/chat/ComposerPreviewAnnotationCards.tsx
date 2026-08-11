@@ -63,7 +63,7 @@ export function ComposerPreviewAnnotationCards({
                 />
               </button>
             ) : (
-              <span className="grid size-10 shrink-0 place-items-center border-r border-border/70 text-message-action">
+              <span className="grid size-14 shrink-0 place-items-center border-r border-border/70 text-message-action">
                 <MousePointerClick className="size-3.5" />
               </span>
             )}
@@ -131,7 +131,7 @@ export function ComposerPreviewAnnotationCards({
             <button
               type="button"
               aria-label="Remove preview annotation"
-              className="absolute right-1.5 top-1.5 grid size-5 place-items-center rounded text-icon-muted transition hover:bg-muted hover:text-foreground"
+              className="absolute right-1.5 top-1.5 grid size-5 cursor-pointer place-items-center rounded-sm text-icon-muted outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => onRemove(annotation.id)}
             >
               <X className="size-3" />

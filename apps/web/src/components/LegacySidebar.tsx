@@ -224,7 +224,7 @@ const PROJECT_GROUPING_MODE_LABELS: Record<SidebarProjectGroupingMode, string> =
   separate: "Keep separate",
 };
 const SIDEBAR_ICON_ACTION_BUTTON_CLASS =
-  "inline-flex h-6 min-w-6 cursor-pointer items-center justify-center rounded-md px-[calc(--spacing(1)-1px)] text-icon-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring";
+  "inline-flex h-6 min-w-6 cursor-pointer items-center justify-center rounded-md px-[calc(--spacing(1)-1px)] text-icon-muted transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring";
 
 function SidebarThreadDetailPrewarmer({ threadRef }: { readonly threadRef: ScopedThreadRef }) {
   useEnvironmentThread(threadRef.environmentId, threadRef.threadId);
@@ -747,7 +747,7 @@ export const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThr
                   <button
                     type="button"
                     aria-label={`Open localhost:${discoveredPorts[0]?.port ?? ""}`}
-                    className="inline-flex cursor-pointer items-center justify-center text-emerald-600 outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:text-emerald-400"
+                    className="inline-flex cursor-pointer items-center justify-center rounded-sm text-emerald-600 outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:text-emerald-400"
                     onClick={handleOpenDiscoveredPort}
                   />
                 }
@@ -2627,7 +2627,7 @@ function ProjectSortMenu({
       <Tooltip>
         <TooltipTrigger
           render={
-            <MenuTrigger className="inline-flex h-6 min-w-6 cursor-pointer items-center justify-center rounded-md px-[calc(--spacing(1)-1px)] text-icon-muted transition-colors hover:bg-accent hover:text-foreground" />
+            <MenuTrigger className="inline-flex h-6 min-w-6 cursor-pointer items-center justify-center rounded-md px-[calc(--spacing(1)-1px)] text-icon-muted transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring" />
           }
         >
           <ArrowUpDownIcon className="size-3.5" />
@@ -2861,12 +2861,7 @@ const SidebarProjectsContent = memo(function SidebarProjectsContent(
           <SidebarMenu>
             <SidebarMenuItem>
               <CommandDialogTrigger
-                render={
-                  <SidebarMenuButton
-                    className="focus-visible:ring-0"
-                    data-testid="command-palette-trigger"
-                  />
-                }
+                render={<SidebarMenuButton data-testid="command-palette-trigger" />}
               >
                 <SearchIcon />
                 <span className="flex-1 truncate">Search</span>
@@ -2924,7 +2919,7 @@ const SidebarProjectsContent = memo(function SidebarProjectsContent(
                     type="button"
                     aria-label="Add project"
                     data-testid="sidebar-add-project-trigger"
-                    className="inline-flex h-6 min-w-6 cursor-pointer items-center justify-center rounded-md px-[calc(--spacing(1)-1px)] text-icon-muted transition-colors hover:bg-accent hover:text-foreground"
+                    className="inline-flex h-6 min-w-6 cursor-pointer items-center justify-center rounded-md px-[calc(--spacing(1)-1px)] text-icon-muted transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                     onClick={openAddProject}
                   />
                 }

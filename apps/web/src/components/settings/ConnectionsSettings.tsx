@@ -368,7 +368,7 @@ function formatDesktopSshConnectionError(error: unknown): string {
   return withoutTaggedErrorPrefix.trim() || fallback;
 }
 
-const ENDPOINT_ROW_CLASSNAME = "rounded-xl px-3 py-2.5 sm:px-4";
+const ENDPOINT_ROW_CLASSNAME = "rounded-xl px-3 py-3 sm:px-4";
 
 type AccessSectionPresentation = "current" | "endpoint-rail";
 
@@ -816,7 +816,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
                       role="radio"
                       aria-checked={isSelected}
                       className={cn(
-                        "flex w-full items-baseline gap-2 rounded-lg border px-2.5 py-1.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "flex w-full cursor-pointer items-baseline gap-2 rounded-lg border px-2.5 py-1.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         isSelected
                           ? "border-foreground/60 bg-muted/30"
                           : "border-border/50 hover:bg-muted/20",
@@ -1318,7 +1318,7 @@ function NetworkAccessDescription({
       {hiddenEndpointCount > 0 ? (
         <button
           type="button"
-          className="inline-flex min-w-0 max-w-full items-baseline gap-2 border-b border-dotted border-muted-foreground/60 text-left text-muted-foreground underline-offset-4 hover:border-foreground hover:text-foreground"
+          className="inline-flex min-w-0 max-w-full cursor-pointer items-baseline gap-2 border-b border-dotted border-muted-foreground/60 text-left text-muted-foreground underline-offset-4 hover:border-foreground hover:text-foreground"
           onClick={onToggleExpanded}
           aria-expanded={expanded}
         >
@@ -1451,7 +1451,7 @@ function SavedBackendListRow({
               {errorTraceId ? (
                 <button
                   type="button"
-                  className="shrink-0 underline underline-offset-2"
+                  className="shrink-0 cursor-pointer underline underline-offset-2"
                   onClick={() => copyTraceId(errorTraceId)}
                 >
                   Copy trace ID
@@ -2374,7 +2374,7 @@ export function ConnectionsSettings() {
         type="button"
         aria-pressed={selected}
         className={cn(
-          "group flex min-h-24 items-start gap-3 rounded-lg border p-4 text-left",
+          "group flex min-h-24 cursor-pointer items-start gap-3 rounded-lg border p-4 text-left disabled:pointer-events-none disabled:opacity-64",
           selected ? "border-primary/50 bg-primary/5" : "border-border/60 hover:bg-muted/40",
         )}
         disabled={isAddingSavedBackend}

@@ -307,7 +307,7 @@ function OnboardingStepper({
           type="button"
           disabled={disabled}
           className={cn(
-            "grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] gap-x-2 rounded-lg border px-3 py-2 text-left",
+            "grid min-w-0 cursor-pointer grid-cols-[1rem_minmax(0,1fr)] gap-x-2 rounded-lg border px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-64",
             index === currentIndex
               ? "border-primary bg-primary/10 ring-1 ring-primary/25"
               : index < currentIndex

@@ -191,7 +191,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
     <>
       <SidebarContent className="overflow-x-hidden">
         <SidebarGroup className="gap-2 p-[var(--sidebar-content-inset)]">
-          <div className="flex h-8 items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-sidebar-muted-foreground hover:bg-sidebar-row-hover hover:text-sidebar-foreground">
+          <div className="flex h-8 items-center gap-2 rounded-[var(--control-radius)] px-[var(--sidebar-row-content-inset)] py-1.5 text-sm font-medium text-sidebar-muted-foreground hover:bg-sidebar-row-hover hover:text-sidebar-foreground">
             <SearchIcon className="size-4 shrink-0 text-sidebar-muted-foreground/80" />
             <Input
               ref={searchInputRef}
@@ -259,7 +259,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                       tabIndex={-1}
                       size="sm"
                       isActive={index === activeResultIndex}
-                      className="h-auto min-h-10 items-start gap-2 rounded-md px-2 py-2 text-left hover:bg-sidebar-row-hover hover:text-sidebar-foreground"
+                      className="h-auto min-h-10 items-start gap-2 rounded-[var(--control-radius)] px-[var(--sidebar-row-content-inset)] py-2 text-left hover:bg-sidebar-row-hover hover:text-sidebar-foreground"
                       onMouseMove={() => setActiveResultIndex(index)}
                       onClick={() => handleSearchResultClick(item)}
                     >

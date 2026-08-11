@@ -935,11 +935,11 @@ function ProjectDetail({ group }: { group: SidebarProjectSnapshot }) {
             </Select>
           }
         >
-          <div className="px-3 py-2 sm:px-4">
+          <div className="px-3 py-3 sm:px-4">
             <div className="flex min-w-0 items-center rounded-lg bg-muted/30 p-1 text-base text-muted-foreground sm:text-sm">
               <button
                 aria-label="Copy checkout path"
-                className="group flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-left outline-none hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                className="group flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-left outline-none transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                 title="Copy path"
                 type="button"
                 onClick={() =>
@@ -1019,8 +1019,8 @@ function ProjectDetail({ group }: { group: SidebarProjectSnapshot }) {
           ) : null}
           <div className="flex min-h-8 flex-col items-start gap-3 px-3 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4">
             <div className="min-w-0">
-              <h3 className="text-base font-semibold text-foreground">Actions</h3>
-              <p className="text-pretty text-sm text-muted-foreground">
+              <h3 className="text-sm font-medium tracking-[-0.005em] text-foreground">Actions</h3>
+              <p className="text-pretty text-[13px] leading-[1.45] text-muted-foreground/80">
                 Saved and run only in {selectedCheckoutLabel}.
               </p>
             </div>
@@ -1074,7 +1074,7 @@ function ProjectDetail({ group }: { group: SidebarProjectSnapshot }) {
             </div>
           </div>
           {scripts.length === 0 ? (
-            <p className="px-3 py-2 text-base text-muted-foreground sm:px-4 sm:text-sm">
+            <p className="px-3 py-3 text-base text-muted-foreground sm:px-4 sm:text-sm">
               No actions configured for this checkout.
             </p>
           ) : (
@@ -1086,7 +1086,7 @@ function ProjectDetail({ group }: { group: SidebarProjectSnapshot }) {
               return (
                 <SettingsRow
                   key={script.id}
-                  className="group py-2"
+                  className="group"
                   title={
                     <span className="flex min-w-0 items-center gap-2">
                       <ScriptIcon

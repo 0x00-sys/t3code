@@ -63,7 +63,7 @@ export function PreviewPanelShell(props: {
       data-preview-panel-maximized={props.maximized ? "true" : "false"}
     >
       {isInline && !props.maximized ? <RightPanelResizeHandle handlers={handlers} /> : null}
-      {useDragRegion ? <div className="electron-drag-region h-0 w-full" aria-hidden /> : null}
+      {useDragRegion ? <div className="drag-region h-0 w-full" aria-hidden /> : null}
       {props.children}
     </div>
   );

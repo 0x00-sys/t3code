@@ -897,7 +897,7 @@ function BackgroundActivityAdvancedDialog({
               {BACKGROUND_ACTIVITY_BOOLEAN_OVERRIDES.map(({ key, label }) => (
                 <label
                   key={key}
-                  className="flex items-center justify-between gap-3 border-b px-4 py-3 last:border-b-0 sm:border-r sm:even:border-r-0"
+                  className="flex cursor-pointer items-center justify-between gap-3 border-b px-4 py-3 last:border-b-0 sm:border-r sm:even:border-r-0"
                 >
                   <span className="text-sm font-medium">{label}</span>
                   <Switch
@@ -2093,7 +2093,7 @@ export function GeneralSettingsPanel() {
 
         {settings.defaultThreadEnvMode === "worktree" ? (
           <SettingsRow
-            className="bg-muted/20 sm:pl-9"
+            className="bg-muted/20 pl-7 sm:pl-8"
             title={searchableSetting("start-from-origin").title}
             description="Creates the worktree from the latest matching branch on origin instead of your local branch."
             resetAction={
@@ -2499,7 +2499,7 @@ export function ArchivedThreadsPanel() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-7 shrink-0 cursor-pointer gap-1.5 px-2.5"
+                    className="shrink-0"
                     onClick={() => {
                       void (async () => {
                         const result = await unarchiveThread(

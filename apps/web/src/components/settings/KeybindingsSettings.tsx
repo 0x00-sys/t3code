@@ -251,7 +251,7 @@ function UnknownWhenVariableWarning({
           <span
             tabIndex={focusable ? 0 : undefined}
             aria-label={label}
-            className="inline-flex size-4.5 shrink-0 items-center justify-center rounded-sm text-warning outline-none transition-colors hover:bg-warning/10 focus-visible:ring-[3px] focus-visible:ring-warning/25"
+            className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-warning outline-none transition-colors hover:bg-warning/10 focus-visible:ring-[3px] focus-visible:ring-warning/25"
           >
             <TriangleAlertIcon className="size-3.5" />
           </span>
@@ -838,7 +838,7 @@ function KeybindingTableRow({
             type="button"
             onClick={() => setDraft({ isRecording: true })}
             aria-label={`Edit shortcut for ${commandLabel(row.command)}`}
-            className="group inline-flex h-7 items-center gap-1.5 rounded-md border border-transparent px-1.5 outline-none transition-colors hover:border-border/70 hover:bg-background focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/24"
+            className="group inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-transparent px-1.5 outline-none transition-colors hover:border-border/70 hover:bg-background focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/24"
           >
             <KeybindingPill value={row.key} />
             <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground/0 transition-opacity group-hover:text-muted-foreground/70 group-focus-visible:text-muted-foreground/70">

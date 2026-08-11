@@ -63,7 +63,7 @@ export function DiffCommentAnnotation({
             aria-label="Delete comment"
             onClick={onDelete}
           >
-            <Trash2 className="size-3" />
+            <Trash2 />
           </Button>
         ) : null}
       </div>

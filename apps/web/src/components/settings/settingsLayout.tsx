@@ -91,7 +91,7 @@ export function PolicyTooltip({ children }: { readonly children: string }) {
         render={
           <button
             type="button"
-            className="inline-flex size-5 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground"
+            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Background policy details"
           >
             <InfoIcon className="size-3.5" />

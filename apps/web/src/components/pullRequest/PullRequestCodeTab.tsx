@@ -631,7 +631,7 @@ export function PullRequestCodeTab({
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand diff" : "Collapse diff"}
           className={cn(
-            "mr-1 inline-flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground",
+            "mr-1 inline-flex size-5 cursor-pointer items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground",
           )}
           onClick={(event) => {
             event.stopPropagation();
@@ -836,7 +836,7 @@ export function PullRequestCodeTab({
           // edge.
           <button
             type="button"
-            className="chat-composer-glass pointer-events-auto absolute bottom-3 right-4 flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium shadow-lg"
+            className="chat-composer-glass pointer-events-auto absolute bottom-3 right-4 flex cursor-pointer items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium shadow-lg"
             onClick={() => setReviewOpen(true)}
           >
             <MessageSquareIcon className="size-3.5" />
@@ -1212,7 +1212,7 @@ export function PullRequestCodeTab({
             // diff crosses the overflow boundary. The viewer is itself focusable for keyboard
             // interaction, but its native host outline clips and competes with the focus
             // indicators on its actual controls.
-            className="h-full overflow-auto [scrollbar-gutter:stable]"
+            className="h-full overflow-auto scrollbar-gutter-stable"
             items={items}
             selectedLines={selectedLines}
             onSelectedLinesChange={setSelectedLines}

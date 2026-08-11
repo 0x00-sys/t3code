@@ -123,7 +123,7 @@ function ProviderCustomColorPanel(props: {
   };
 
   return (
-    <div className="w-56 bg-popover">
+    <div className="w-56">
       <div
         className="relative h-36 cursor-crosshair touch-none"
         style={{

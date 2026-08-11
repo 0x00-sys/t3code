@@ -2766,7 +2766,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   <button
                     type="button"
                     className={cn(
-                      "min-w-0 flex-1 truncate bg-transparent py-1.5 text-left text-sm",
+                      "min-w-0 flex-1 cursor-pointer truncate bg-transparent py-1.5 text-left text-sm",
                       activePendingProgress?.customAnswer ? "text-foreground" : "text-placeholder",
                       !activePendingProgress?.activeQuestion?.multiSelect && "px-3 py-2",
                     )}
@@ -2809,7 +2809,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
               <button
                 type="button"
                 className={cn(
-                  "min-w-0 flex-1 truncate bg-transparent p-0 text-left text-[14px] focus:outline-none",
+                  "min-w-0 flex-1 cursor-pointer truncate bg-transparent p-0 text-left text-[14px] focus:outline-none",
                   (activePendingProgress ? activePendingProgress.customAnswer : prompt.trim())
                     ? "text-foreground"
                     : "text-placeholder",
@@ -2826,7 +2826,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
               </button>
               <button
                 type="button"
-                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-message-action text-message-action-foreground hover:bg-message-action-hover disabled:opacity-30"
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-message-action text-message-action-foreground enabled:cursor-pointer hover:bg-message-action-hover disabled:opacity-30"
                 disabled={collapsedComposerPrimaryActionDisabled}
                 aria-label={collapsedComposerPrimaryActionLabel}
                 onPointerDown={(event) => event.preventDefault()}

@@ -76,7 +76,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
           type="button"
           size="icon-xs"
           variant="ghost"
-          className="absolute right-2 top-2"
+          className="absolute right-2 top-2 text-white/90 hover:bg-white/10 hover:text-white"
           onClick={onClose}
           aria-label="Close image preview"
         >

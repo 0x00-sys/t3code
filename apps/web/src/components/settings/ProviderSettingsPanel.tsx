@@ -238,7 +238,7 @@ export function ProviderSettingsPanel() {
                     type="button"
                     aria-pressed={selected}
                     className={cn(
-                      "flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors sm:px-4",
+                      "flex min-w-0 cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors sm:px-4",
                       selected
                         ? "bg-primary/8 ring-1 ring-primary/25 dark:bg-primary/12"
                         : "hover:bg-muted/40",
@@ -720,7 +720,7 @@ export function EnvironmentProviderSettings({
           // threading a disabled flag through every control.
           inert={readOnly}
           aria-disabled={readOnly || undefined}
-          className={readOnly ? "space-y-1 opacity-50 select-none" : "space-y-1"}
+          className={readOnly ? "space-y-1 opacity-64 select-none" : "space-y-1"}
         >
           <SettingsRow
             title={

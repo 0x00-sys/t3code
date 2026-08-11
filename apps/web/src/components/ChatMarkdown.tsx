@@ -524,7 +524,7 @@ function MarkdownDetails({
       data-markdown-details-open={isOpen ? "true" : "false"}
     >
       <CollapsibleTrigger
-        className="flex w-full items-center gap-2 py-2 text-left text-sm font-medium text-foreground data-panel-open:[&_svg]:rotate-90"
+        className="flex w-full items-center gap-2 rounded-sm py-2 text-left text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background data-panel-open:[&_svg]:rotate-90"
         data-markdown-details-summary=""
       >
         <ChevronRightIcon

@@ -793,7 +793,7 @@ export function ThemeEditorPanel({
       <Button
         aria-disabled={lockReason !== null}
         aria-pressed={isActive}
-        className={lockReason !== null ? "opacity-50" : undefined}
+        className={lockReason !== null ? "opacity-64" : undefined}
         style={isActive ? { boxShadow: "inset 0 0 0 1px var(--ring)" } : undefined}
         variant={isActive ? "secondary" : "outline"}
         onClick={() => {

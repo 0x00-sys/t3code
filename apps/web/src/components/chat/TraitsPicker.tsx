@@ -52,7 +52,7 @@ function DefaultBadge() {
   return (
     <Badge
       variant="outline"
-      className="inline-flex h-4 w-fit min-w-0 items-center justify-center gap-0 border-border/70 bg-muted/60 px-1.5 py-0 font-semibold text-[10px] text-muted-foreground leading-none sm:h-4"
+      className="inline-flex h-4 w-fit min-w-0 items-center justify-center gap-0 border-border/70 bg-muted/60 px-1.5 py-0 font-semibold text-[10px] text-muted-foreground leading-none"
     >
       Default
     </Badge>
@@ -305,7 +305,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
           <div key={descriptor.id}>
             {index > 0 ? <MenuDivider /> : null}
             <MenuGroup>
-              <div className="px-2 pt-1.5 pb-1 font-medium text-muted-foreground text-xs">
+              <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
                 {descriptor.label}
               </div>
               {ultrathinkInBodyText && descriptor.id === primarySelectDescriptor?.id ? (

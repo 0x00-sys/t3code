@@ -857,7 +857,7 @@ export default function FilePreviewPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
       {relativePath ? (
-        <div className="surface-subheader gap-2 px-3" data-surface-subheader>
+        <div className="surface-subheader gap-1 px-2" data-surface-subheader>
           <ScrollArea
             ref={breadcrumbRef}
             hideScrollbars

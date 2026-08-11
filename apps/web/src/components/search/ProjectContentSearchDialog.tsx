@@ -64,7 +64,7 @@ function SearchOptionButton(props: {
       aria-pressed={props.active}
       title={props.label}
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center rounded-[5px] font-mono text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+        "flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm font-mono text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
         props.active && "bg-accent text-foreground shadow-sm",
       )}
       onClick={props.onClick}
@@ -267,7 +267,7 @@ function OpenContentSearchDialog(props: {
                       key={`${match.path}:${match.lineNumber}:${match.resultIndex}`}
                       data-content-search-result={match.resultIndex}
                       className={cn(
-                        "flex h-7 w-full min-w-0 items-center gap-3 px-3 text-left font-mono text-xs hover:bg-accent/60 disabled:pointer-events-none",
+                        "flex h-7 w-full min-w-0 cursor-pointer items-center gap-3 px-3 text-left font-mono text-xs hover:bg-accent/60 disabled:pointer-events-none disabled:opacity-64",
                         match.resultIndex === selectedIndex && "bg-accent text-accent-foreground",
                       )}
                       disabled={!canOpenMatches}

@@ -276,9 +276,7 @@ function SidebarThreadTooltip({
       className="max-w-80 text-left whitespace-normal [&_[data-slot=tooltip-viewport]]:p-0"
     >
       <div className="flex min-w-0 max-w-80 flex-col gap-2 p-[var(--floating-content-inset)]">
-        <div className="min-w-0 truncate text-xs leading-none font-medium text-foreground">
-          {thread.title}
-        </div>
+        <div className="min-w-0 truncate text-xs font-medium text-foreground">{thread.title}</div>
         <div className="grid gap-1.5 pl-0.5 text-xs text-muted-foreground">
           {projectTitle ? (
             <div className="flex min-w-0 items-center gap-2">
@@ -481,7 +479,7 @@ const SidebarDraftRow = memo(function SidebarDraftRow(props: {
         tabIndex={0}
         data-testid="sidebar-draft-row"
         className={cn(
-          "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-md text-left text-sidebar-foreground outline-none select-none",
+          "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-[var(--control-radius)] text-left text-sidebar-foreground outline-none select-none",
           props.isActive
             ? "bg-sidebar-row-active"
             : "bg-amber-400/[0.04] hover:bg-amber-400/[0.08]",
@@ -1025,7 +1023,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
   // a useful hierarchy nor a reliable hover cue. Status now lives in the row
   // content; surface is reserved for interaction (hover, multi-select, route).
   const rowSurfaceClassName = cn(
-    "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-md text-left outline-none select-none",
+    "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-[var(--control-radius)] text-left outline-none select-none",
     props.isActive
       ? "bg-sidebar-row-active text-sidebar-foreground"
       : isSelected
@@ -1091,7 +1089,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
         className={cn(
           // Sidebar chrome follows the interface font; tabular digits keep the
           // number from reflowing as PR states stream in.
-          "shrink-0 text-xs tabular-nums hover:underline",
+          "shrink-0 cursor-pointer rounded-sm text-xs tabular-nums outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
           variant === "slim" && variantAction === "unsettle"
             ? props.isActive
               ? "text-secondary-label"
@@ -1128,7 +1126,10 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
                 tabIndex={0}
                 data-testid="sidebar-row-slim"
                 aria-busy={isRegeneratingTitle || undefined}
-                className={cn(rowSurfaceClassName, "flex h-9 items-center gap-2.5 px-2.5")}
+                className={cn(
+                  rowSurfaceClassName,
+                  "flex h-9 items-center gap-2.5 px-[var(--sidebar-row-content-inset)]",
+                )}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
                 onKeyDown={handleKeyDown}
@@ -1547,7 +1548,7 @@ const SidebarSearchResultRow = memo(function SidebarSearchResultRow(props: {
               onMouseMove={props.onHighlight}
               onClick={props.onSelect}
               className={cn(
-                "flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 text-left text-sm outline-none",
+                "flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-[var(--control-radius)] px-[var(--sidebar-row-content-inset)] text-left text-sm outline-none",
                 props.isHighlighted || props.isRouteActive
                   ? "bg-sidebar-row-active text-sidebar-foreground"
                   : "text-sidebar-muted-foreground/75 hover:bg-sidebar-row-hover hover:text-sidebar-foreground",
@@ -2073,9 +2074,23 @@ export default function Sidebar() {
     true,
     Schema.Boolean,
   );
+  // Shelf toggles insert or remove a whole block of rows at once. Letting the
+  // list's auto-animate FLIP every row below the shelf reads as jank for the
+  // snoozed shelf (mid-list) while the settled shelf (list tail) stays smooth,
+  // so both shelves toggle with the list animation suspended and behave
+  // identically; single-row transitions (settle, wake, reorder) keep animating.
+  const threadListAnimationRef = useRef<ReturnType<typeof autoAnimate> | null>(null);
+  const toggleShelfWithoutListAnimation = useCallback((toggle: () => void) => {
+    const controller = threadListAnimationRef.current;
+    controller?.disable();
+    toggle();
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => controller?.enable());
+    });
+  }, []);
   const toggleSettledShelf = useCallback(
-    () => setSettledShelfExpanded((value) => !value),
-    [setSettledShelfExpanded],
+    () => toggleShelfWithoutListAnimation(() => setSettledShelfExpanded((value) => !value)),
+    [setSettledShelfExpanded, toggleShelfWithoutListAnimation],
   );
   const renderedSettledThreads = useMemo(() => {
     if (settledShelfExpanded) return visibleSettledThreads;
@@ -2096,8 +2111,8 @@ export default function Sidebar() {
     Schema.Boolean,
   );
   const toggleSnoozedShelf = useCallback(
-    () => setSnoozedShelfExpanded((value) => !value),
-    [setSnoozedShelfExpanded],
+    () => toggleShelfWithoutListAnimation(() => setSnoozedShelfExpanded((value) => !value)),
+    [setSnoozedShelfExpanded, toggleShelfWithoutListAnimation],
   );
   const visibleSnoozedThreads = useMemo(() => {
     if (snoozedShelfExpanded) return snoozedThreads;
@@ -3180,7 +3195,7 @@ export default function Sidebar() {
 
   const attachListAutoAnimateRef = useCallback((node: HTMLUListElement | null) => {
     if (!node) return;
-    autoAnimate(node, { duration: 150, easing: "ease-out" });
+    threadListAnimationRef.current = autoAnimate(node, { duration: 150, easing: "ease-out" });
   }, []);
 
   // New thread defaults to the project you're in (active thread's project,
@@ -3664,7 +3679,7 @@ export default function Sidebar() {
                           onClick={toggleSnoozedShelf}
                           aria-expanded={snoozedShelfExpanded}
                           data-testid="sidebar-snoozed-shelf-toggle"
-                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 px-2.5 text-left"
+                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 rounded-md px-[var(--sidebar-row-content-inset)] text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                             {snoozedShelfExpanded
@@ -3698,7 +3713,7 @@ export default function Sidebar() {
                           onClick={toggleSettledShelf}
                           aria-expanded={settledShelfExpanded}
                           data-testid="sidebar-settled-shelf-toggle"
-                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 px-2.5 text-left"
+                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 rounded-md px-[var(--sidebar-row-content-inset)] text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <span className="text-xs font-medium text-muted-foreground/50">
                             {settledShelfExpanded
@@ -3727,7 +3742,7 @@ export default function Sidebar() {
                     <button
                       type="button"
                       onClick={showMoreSettled}
-                      className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 text-left text-sm text-sidebar-muted-foreground/55 hover:bg-sidebar-row-hover hover:text-sidebar-foreground"
+                      className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-[var(--control-radius)] px-[var(--sidebar-row-content-inset)] text-left text-sm text-sidebar-muted-foreground/55 hover:bg-sidebar-row-hover hover:text-sidebar-foreground"
                     >
                       <PlusIcon aria-hidden className="size-4 shrink-0" />
                       Show {Math.min(hiddenSettledCount, SETTLED_TAIL_PAGE_COUNT)} more
@@ -3751,7 +3766,7 @@ export default function Sidebar() {
                   <button
                     type="button"
                     onClick={openAddProjectCommandPalette}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-sidebar-border px-2.5 py-1 text-[11px] font-medium text-sidebar-muted-foreground transition-colors hover:bg-sidebar-row-hover hover:text-sidebar-foreground"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-sidebar-border px-2.5 py-1 text-[11px] font-medium text-sidebar-muted-foreground transition-colors hover:bg-sidebar-row-hover hover:text-sidebar-foreground"
                   >
                     <PlusIcon className="-mx-0.5 size-3" />
                     Add project

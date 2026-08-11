@@ -73,7 +73,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
           type="button"
           aria-expanded={expanded}
           data-scroll-anchor-ignore
-          className="group flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           onClick={() => onExpandedChange(!expanded)}
         >
           <ChevronRightIcon
@@ -176,7 +176,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
                 key={file.path}
                 type="button"
                 title={file.path}
-                className="inline-flex max-w-48 items-center gap-1 rounded-md border border-border/70 bg-background/45 px-1.5 py-1 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex max-w-48 cursor-pointer items-center gap-1 rounded-md border border-border/70 bg-background/45 px-1.5 py-1 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onOpenTurnDiff(turnId, file.path)}
               >
                 <PierreEntryIcon
@@ -190,7 +190,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
             ))}
             <button
               type="button"
-              className="rounded-md px-1.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="cursor-pointer rounded-md px-1.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => onExpandedChange(true)}
             >
               Show all {files.length} files
@@ -254,7 +254,7 @@ export const ChangedFilesTree = memo(function ChangedFilesTree(props: {
           <button
             type="button"
             data-scroll-anchor-ignore
-            className="group flex w-full items-center gap-1.5 rounded-xl py-1 pr-3 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+            className="group flex w-full cursor-pointer items-center gap-1.5 rounded-xl py-1 pr-3 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
             style={{ paddingLeft: `${leftPadding}px` }}
             onClick={() => toggleDirectory(node.path)}
           >
@@ -292,7 +292,7 @@ export const ChangedFilesTree = memo(function ChangedFilesTree(props: {
       <button
         key={`file:${node.path}`}
         type="button"
-        className="group flex w-full items-center gap-1.5 rounded-xl py-1 pr-3 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+        className="group flex w-full cursor-pointer items-center gap-1.5 rounded-xl py-1 pr-3 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
         style={{ paddingLeft: `${leftPadding}px` }}
         onClick={() => onOpenTurnDiff(turnId, node.path)}
       >

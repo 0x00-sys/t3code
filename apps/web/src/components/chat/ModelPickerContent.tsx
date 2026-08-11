@@ -724,7 +724,7 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
                           index={index}
                           value={modelKey}
                           aria-expanded={legacySection.isExpanded}
-                          className="group w-full cursor-pointer rounded-md px-2 py-2"
+                          className="group w-full cursor-pointer rounded-md px-2 py-2 transition-[background-color,box-shadow,color] hover:bg-[color-mix(in_srgb,var(--popover)_90%,var(--foreground))] data-highlighted:bg-[color-mix(in_srgb,var(--popover)_90%,var(--foreground))]"
                           contentClassName="flex w-full items-center gap-3"
                         >
                           <div className="min-w-0 flex-1 text-left">
@@ -781,7 +781,7 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
                   onLayout={updateModelListScrollFades}
                   onScroll={updateModelListScrollFades}
                   className={cn(
-                    "model-picker-list scrollbar-gutter-stable h-full overflow-x-hidden overscroll-y-contain py-1.5 [--fade-size:1.5rem]",
+                    "model-picker-list scrollbar-gutter-stable h-full overflow-x-hidden overscroll-y-contain py-1.5",
                     showTopScrollFade && "model-picker-list-scroll-fade-top",
                     showBottomScrollFade && "model-picker-list-scroll-fade-bottom",
                   )}

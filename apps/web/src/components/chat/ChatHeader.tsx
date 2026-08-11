@@ -232,7 +232,7 @@ export const ChatHeader = memo(function ChatHeader({
                       type="button"
                       aria-label={`New thread in ${activeProjectName}`}
                       onClick={onNewThreadInProject}
-                      className="inline-flex min-w-0 cursor-pointer items-center gap-1.5 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                      className="inline-flex min-w-0 cursor-pointer items-center gap-1.5 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
                     />
                   }
                 >
@@ -274,7 +274,7 @@ export const ChatHeader = memo(function ChatHeader({
                     aria-label={`Thread actions for ${activeThreadTitle}`}
                     aria-haspopup="menu"
                     onClick={openMenuFromTitle}
-                    className="group/thread-title inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1 rounded-sm text-left focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                    className="group/thread-title inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1 rounded-sm text-left focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
                   />
                 }
               >

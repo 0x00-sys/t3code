@@ -727,7 +727,7 @@ export function BranchToolbarBranchSelector({
                   aria-label={branchPrTooltip}
                   onClick={(event) => openPrLink(event, branchPrStatus.url)}
                   className={cn(
-                    "inline-flex shrink-0 items-center gap-0.5 rounded px-1 py-0.5 text-[11px] font-medium tabular-nums transition-colors hover:bg-muted/60",
+                    "inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded px-1 py-0.5 text-[11px] font-medium tabular-nums transition-colors hover:bg-muted/60",
                     branchPrStatus.colorClass,
                   )}
                 />
@@ -814,7 +814,7 @@ export function BranchToolbarBranchSelector({
                   maybeFetchNextBranchPage();
                 }}
                 className={cn(
-                  "scrollbar-gutter-stable overflow-x-hidden overscroll-y-contain ps-1 pe-0 pt-2 pb-1 [--fade-size:1.5rem]",
+                  "scrollbar-gutter-stable overflow-x-hidden overscroll-y-contain ps-1 pe-0 pt-2 pb-1",
                   showTopBranchScrollFade && "mask-t-from-[calc(100%-var(--fade-size))]",
                   showBottomBranchScrollFade && "mask-b-from-[calc(100%-var(--fade-size))]",
                 )}

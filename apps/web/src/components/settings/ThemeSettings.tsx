@@ -721,7 +721,7 @@ export function ThemeLibrary({
             aria-label={mode === "system" ? "Follow the system appearance" : `Use ${mode} mode`}
             aria-pressed={isActive}
             className={cn(
-              "flex cursor-pointer flex-col items-stretch gap-1.5 rounded-xl border p-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              "flex cursor-pointer flex-col items-stretch gap-1.5 rounded-xl border p-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               isActive
                 ? "border-transparent bg-accent/30"
                 : "border-border/70 bg-card/60 hover:bg-accent/10",

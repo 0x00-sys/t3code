@@ -756,7 +756,7 @@ export function PullRequestDetailPanel({
                   type="button"
                   onClick={() => void readLocalApi()?.shell.openExternal(detail.url)}
                   className={cn(
-                    "shrink-0 font-medium underline-offset-2 hover:underline",
+                    "shrink-0 cursor-pointer font-medium underline-offset-2 hover:underline",
                     statePresentation.toneClassName,
                   )}
                   title={OPEN_ON_HOST_LABELS[detail.provider] ?? "Open on host"}
@@ -784,7 +784,7 @@ export function PullRequestDetailPanel({
                   tabIndex={condensed ? 0 : -1}
                   onClick={() => void readLocalApi()?.shell.openExternal(detail.url)}
                   className={cn(
-                    "shrink-0 font-medium underline-offset-2 hover:underline",
+                    "shrink-0 cursor-pointer font-medium underline-offset-2 hover:underline",
                     statePresentation.toneClassName,
                   )}
                   title={OPEN_ON_HOST_LABELS[detail.provider] ?? "Open on host"}
@@ -1037,7 +1037,7 @@ export function PullRequestDetailPanel({
                       aria-pressed={tab === item.value}
                       onClick={() => setTab(item.value)}
                       className={cn(
-                        "rounded-md px-2 py-1 text-[11px] transition-colors",
+                        "cursor-pointer rounded-md px-2 py-1 text-[11px] transition-colors",
                         tab === item.value
                           ? "bg-accent text-foreground"
                           : "text-muted-foreground hover:text-foreground",
@@ -1188,7 +1188,7 @@ export function PullRequestDetailPanel({
                     aria-pressed={tab === item.value}
                     onClick={() => setTab(item.value)}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors",
+                      "inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors",
                       tab === item.value
                         ? "bg-accent text-foreground"
                         : "text-muted-foreground hover:text-foreground",

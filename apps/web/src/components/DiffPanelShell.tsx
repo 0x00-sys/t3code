@@ -62,7 +62,7 @@ export function DiffPanelHeaderSkeleton() {
 
 function DiffFileHeaderSkeleton({ titleClassName }: { titleClassName: string }) {
   return (
-    <div className="flex h-8 items-center gap-2 px-2 pr-3">
+    <div className="flex h-8 items-center gap-2 pl-2 pr-3">
       <div className="flex size-5 shrink-0 items-center justify-center">
         <Skeleton className="size-2.5 rounded-[2px]" />
       </div>
@@ -94,7 +94,7 @@ export function DiffPanelLoadingState(props: { label: string }) {
       aria-label={props.label}
     >
       <DiffFileHeaderSkeleton titleClassName="w-1/2 max-w-64" />
-      <div className="flex h-6 items-center gap-2 px-2 pr-3">
+      <div className="flex h-6 items-center gap-2 pl-2 pr-3">
         <div className="h-px flex-1 bg-border/40" />
         <Skeleton className="h-2.5 w-24 rounded-full" />
         <div className="h-px flex-1 bg-border/40" />

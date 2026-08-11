@@ -178,7 +178,7 @@ function TimelineLoadEarlierHeader({
           type="button"
           onClick={onLoadEarlier}
           disabled={loading}
-          className="w-full py-1.5 text-xs text-muted-foreground/60 hover:text-foreground disabled:cursor-default"
+          className="w-full cursor-pointer py-1.5 text-xs text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70 disabled:cursor-default"
         >
           {loading ? "Loading earlier turns…" : "Load earlier turns"}
         </button>
@@ -891,7 +891,7 @@ function TimelineMinimap({
                 transform: `translateY(${activeTooltipTranslate})`,
               }}
             >
-              <span className="dropdown-glass block rounded-xl p-3 text-left text-popover-foreground shadow-xl shadow-black/25">
+              <span className="dropdown-glass block rounded-xl p-[var(--floating-content-inset)] text-left text-popover-foreground shadow-xl shadow-black/25">
                 <span className="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-5">
                   {activeItem.userText ?? "User message"}
                 </span>
@@ -993,7 +993,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                 {image.previewUrl ? (
                   <button
                     type="button"
-                    className="h-full w-full cursor-zoom-in"
+                    className="h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
                     aria-label={`Preview ${image.name}`}
                     onClick={() => {
                       const preview = buildExpandedImagePreview(regularImages, image.id);
@@ -1210,11 +1210,13 @@ const TurnPlanTimelineRow = memo(function TurnPlanTimelineRow({
     <div className="min-w-0 px-1 py-0.5">
       <button
         type="button"
-        className="flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-md px-0.5 py-0.5 text-left text-[12px] leading-5 transition-colors duration-150 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
+        className="flex w-full min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-0.5 py-0.5 text-left text-[12px] leading-5 transition-colors duration-150 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
         aria-expanded={expanded}
         onClick={() => setExpanded((value) => !value)}
       >
-        <Chevron className="size-3.5 shrink-0 text-muted-foreground/65" />
+        <span className="flex size-5 shrink-0 items-center justify-center">
+          <Chevron className="size-3.5 shrink-0 text-muted-foreground/65" />
+        </span>
         {steps.length > 1 ? (
           <span aria-hidden className="flex shrink-0 items-center gap-0.5">
             {steps.map((step) => (
@@ -1543,7 +1545,7 @@ function UserMessagePreviewAnnotationCard(props: {
       {props.image?.previewUrl ? (
         <button
           type="button"
-          className="size-14 shrink-0 cursor-zoom-in overflow-hidden border-r border-border/70 bg-muted"
+          className="size-14 shrink-0 cursor-zoom-in overflow-hidden border-r border-border/70 bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
           aria-label={`Preview ${props.image.name}`}
           onClick={() => {
             if (!props.image) return;
@@ -1566,7 +1568,7 @@ function UserMessagePreviewAnnotationCard(props: {
         ) : null}
         <div
           className={cn(
-            "flex items-center gap-2 text-secondary-label text-[10px]",
+            "flex items-center gap-2 text-secondary-label text-[11px]",
             props.annotation.comment && "mt-1",
           )}
         >
@@ -2192,7 +2194,7 @@ const AgentSpawnCtaRow = memo(function AgentSpawnCtaRow(props: { workEntry: Time
     <button
       type="button"
       onClick={onOpenAgents}
-      className="-mx-1 flex w-full items-center gap-2 rounded-md border border-border/60 bg-card/50 px-2.5 py-1.5 text-left text-[13px] transition hover:bg-accent/50"
+      className="-mx-1 flex w-full cursor-pointer items-center gap-2 rounded-md border border-border/60 bg-card/50 px-2.5 py-1.5 text-left text-[13px] transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
     >
       <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", dotClass)} />
       <WorkEntryIconSvg name="bot" className="size-3.5 shrink-0 text-muted-foreground" />
@@ -2316,7 +2318,7 @@ const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
               {canExpand ? (
                 <ChevronDownIcon
                   className={cn(
-                    "size-3 shrink-0 opacity-70 transition-transform duration-200",
+                    "size-3.5 shrink-0 opacity-70 transition-transform duration-200",
                     expanded && "rotate-180",
                   )}
                   aria-hidden

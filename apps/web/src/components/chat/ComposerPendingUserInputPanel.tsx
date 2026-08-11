@@ -153,7 +153,7 @@ const ComposerPendingUserInputCard = memo(function ComposerPendingUserInputCard(
   const customAnswerActive = progress.customAnswer.trim().length > 0;
 
   return (
-    <div className="px-4 py-3 sm:px-5">
+    <div className="px-4 py-3.5 sm:px-5 sm:py-4">
       <div className="mb-2 flex items-center gap-3">
         <span className="text-secondary-label text-[11px] font-semibold tracking-widest uppercase">
           {activeQuestion.header}
@@ -182,7 +182,7 @@ const ComposerPendingUserInputCard = memo(function ComposerPendingUserInputCard(
             isSelected
               ? "border-primary/30 bg-primary/8 text-foreground"
               : "border-transparent bg-muted/22 text-foreground/85 hover:border-border/45 hover:bg-muted/34",
-            isResponding && "opacity-50 cursor-not-allowed",
+            isResponding && "opacity-64 cursor-not-allowed",
             !isResponding && "cursor-pointer",
           );
           const content = (

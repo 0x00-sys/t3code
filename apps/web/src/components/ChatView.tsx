@@ -2117,7 +2117,10 @@ function ChatViewContent(props: ChatViewProps) {
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <button type="button" className="cursor-help rounded-sm text-left">
+                  <button
+                    type="button"
+                    className="cursor-help rounded-sm text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                  >
                     Server update available
                   </button>
                 }
@@ -4543,7 +4546,7 @@ function ChatViewContent(props: ChatViewProps) {
             </Tooltip>
           </span>
         ),
-        className: "dark:shadow-none",
+
         actions: (
           <Button
             size="xs"
@@ -6250,7 +6253,7 @@ function ChatViewContent(props: ChatViewProps) {
                     aria-label="Scroll to end"
                     title="Scroll to end"
                     onClick={() => scrollToEnd(true)}
-                    className="chat-composer-glass pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1 text-muted-foreground text-xs shadow-sm transition-colors hover:border-border hover:text-foreground hover:cursor-pointer"
+                    className="chat-composer-glass pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1 text-muted-foreground text-xs shadow-sm cursor-pointer transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
                   >
                     <ChevronDownIcon className="size-3.5" />
                     Scroll to end

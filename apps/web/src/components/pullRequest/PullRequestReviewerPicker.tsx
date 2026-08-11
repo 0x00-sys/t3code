@@ -160,7 +160,7 @@ export function PullRequestReviewerPicker({
                 type="button"
                 disabled={pending !== null}
                 onClick={() => void toggle(candidate)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-accent/60 disabled:opacity-60"
+                className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-accent/60 disabled:pointer-events-none disabled:opacity-64"
               >
                 <PullRequestActorLabel actor={candidate} className="min-w-0 flex-1 truncate" />
                 {candidate.kind === "team" ? (

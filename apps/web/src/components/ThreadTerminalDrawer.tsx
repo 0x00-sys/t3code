@@ -908,7 +908,14 @@ function TerminalActionButton({ label, className, onClick, children }: TerminalA
     <Popover>
       <PopoverTrigger
         openOnHover
-        render={<button type="button" className={className} onClick={onClick} aria-label={label} />}
+        render={
+          <button
+            type="button"
+            className={cn("cursor-pointer", className)}
+            onClick={onClick}
+            aria-label={label}
+          />
+        }
       >
         {children}
       </PopoverTrigger>
@@ -1281,7 +1288,7 @@ export default function ThreadTerminalDrawer({
           <p>No terminal sessions for this thread yet.</p>
           <button
             type="button"
-            className="rounded-md border border-border/80 bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+            className="cursor-pointer rounded-md border border-border/80 bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
             onClick={onNewTerminalAction}
           >
             {newTerminalActionLabel}
@@ -1318,7 +1325,7 @@ export default function ThreadTerminalDrawer({
             <TerminalActionButton
               className={`p-1 text-foreground/90 transition-colors ${
                 hasReachedSplitLimit
-                  ? "cursor-not-allowed opacity-45 hover:bg-transparent"
+                  ? "cursor-not-allowed opacity-64 hover:bg-transparent"
                   : "hover:bg-accent"
               }`}
               onClick={onSplitTerminalAction}
@@ -1330,7 +1337,7 @@ export default function ThreadTerminalDrawer({
             <TerminalActionButton
               className={`p-1 text-foreground/90 transition-colors ${
                 hasReachedSplitLimit
-                  ? "cursor-not-allowed opacity-45 hover:bg-transparent"
+                  ? "cursor-not-allowed opacity-64 hover:bg-transparent"
                   : "hover:bg-accent"
               }`}
               onClick={onSplitTerminalVerticalAction}
@@ -1456,7 +1463,7 @@ export default function ThreadTerminalDrawer({
                   <TerminalActionButton
                     className={`inline-flex h-full items-center px-1 text-foreground/90 transition-colors ${
                       hasReachedSplitLimit
-                        ? "cursor-not-allowed opacity-45 hover:bg-transparent"
+                        ? "cursor-not-allowed opacity-64 hover:bg-transparent"
                         : "hover:bg-accent/70"
                     }`}
                     onClick={onSplitTerminalAction}
@@ -1467,7 +1474,7 @@ export default function ThreadTerminalDrawer({
                   <TerminalActionButton
                     className={`inline-flex h-full items-center border-l border-border/70 px-1 text-foreground/90 transition-colors ${
                       hasReachedSplitLimit
-                        ? "cursor-not-allowed opacity-45 hover:bg-transparent"
+                        ? "cursor-not-allowed opacity-64 hover:bg-transparent"
                         : "hover:bg-accent/70"
                     }`}
                     onClick={onSplitTerminalVerticalAction}
@@ -1505,7 +1512,7 @@ export default function ThreadTerminalDrawer({
                       {showGroupHeaders && (
                         <button
                           type="button"
-                          className={`flex w-full items-center rounded px-1 py-0.5 text-[10px] uppercase tracking-[0.08em] ${
+                          className={`flex w-full cursor-pointer items-center rounded px-1 py-0.5 text-[10px] uppercase tracking-[0.08em] ${
                             isGroupActive
                               ? "bg-accent/70 text-foreground"
                               : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
@@ -1538,7 +1545,7 @@ export default function ThreadTerminalDrawer({
                               )}
                               <button
                                 type="button"
-                                className="flex min-w-0 flex-1 items-center gap-1 text-left"
+                                className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 text-left"
                                 onClick={() => onActiveTerminalChange(terminalId)}
                               >
                                 <TerminalSquare className="size-3 shrink-0" />
@@ -1553,7 +1560,7 @@ export default function ThreadTerminalDrawer({
                                     render={
                                       <button
                                         type="button"
-                                        className="inline-flex size-3.5 items-center justify-center rounded text-xs font-medium leading-none text-muted-foreground opacity-0 transition hover:bg-accent hover:text-foreground group-hover:opacity-100"
+                                        className="inline-flex size-3.5 cursor-pointer items-center justify-center rounded text-xs font-medium leading-none text-muted-foreground opacity-0 transition-[opacity,color,background-color] hover:bg-accent hover:text-foreground group-hover:opacity-100"
                                         onClick={() => onCloseTerminal(terminalId)}
                                         aria-label={closeTerminalLabel}
                                       />

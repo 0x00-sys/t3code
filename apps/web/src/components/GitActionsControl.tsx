@@ -578,7 +578,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                         : isComplete
                           ? "border-border bg-background dark:border-transparent dark:bg-white/[0.05]"
                           : "border-border bg-muted/40 dark:border-transparent dark:bg-white/[0.025]",
-                      !isClickable && "cursor-default",
+                      isClickable ? "cursor-pointer" : "cursor-default",
                     )}
                   >
                     <span
@@ -634,7 +634,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                       return (
                         <div
                           key={option.value}
-                          className="relative flex cursor-not-allowed items-center gap-3 rounded-lg border border-border bg-background px-3 py-3 text-left opacity-55 dark:border-transparent dark:bg-white/[0.035]"
+                          className="relative flex cursor-not-allowed items-center gap-3 rounded-lg border border-border bg-background px-3 py-3 text-left opacity-64 dark:border-transparent dark:bg-white/[0.035]"
                         >
                           <option.Icon
                             className="size-5 shrink-0 text-muted-foreground"
@@ -790,7 +790,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                     type="button"
                     onClick={() => setPublishAdvancedOpen((prev) => !prev)}
                     aria-expanded={publishAdvancedOpen}
-                    className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    className="flex cursor-pointer items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <ChevronDownIcon
                       className={cn(
@@ -835,7 +835,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                                 key={value}
                                 value={value}
                                 className={cn(
-                                  "rounded-md border px-3 py-1.5 text-center text-sm font-medium outline-none transition",
+                                  "cursor-pointer rounded-md border px-3 py-1.5 text-center text-sm font-medium outline-none transition-[background-color,border-color,box-shadow] data-disabled:cursor-not-allowed data-disabled:opacity-64",
                                   "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                                   isSelected
                                     ? "border-primary bg-background ring-2 ring-primary/35 text-foreground dark:border-transparent dark:bg-primary/10 dark:ring-1 dark:ring-primary/30"
@@ -1923,7 +1923,7 @@ export default function GitActionsControl({
                               )}
                               <button
                                 type="button"
-                                className="flex flex-1 items-center justify-between gap-3 text-left truncate"
+                                className="flex flex-1 cursor-pointer items-center justify-between gap-3 text-left truncate"
                                 onClick={() => openChangedFileInEditor(file.path)}
                               >
                                 <span

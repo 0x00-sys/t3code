@@ -123,7 +123,7 @@ function BackgroundPolicyTooltip({ children }: { readonly children: string }) {
         render={
           <button
             type="button"
-            className="inline-flex size-5 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground"
+            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Background policy details"
           >
             <InfoIcon className="size-3.5" />
@@ -286,7 +286,7 @@ function DiscoveryItemRow({
     <div
       className={cn(
         "rounded-xl transition-colors hover:bg-muted/20",
-        isVcsNotReady(item) && "opacity-80",
+        isVcsNotReady(item) && "opacity-64",
       )}
     >
       <div className="px-3 py-3 sm:px-4">
@@ -338,7 +338,7 @@ function DiscoveryItemRow({
       {hasDetails ? (
         <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
           <CollapsibleContent>
-            <div className="px-3 pb-4 pt-1 sm:px-4">{children}</div>
+            <div className="px-3 pb-4 pt-2 sm:px-4">{children}</div>
           </CollapsibleContent>
         </Collapsible>
       ) : null}
