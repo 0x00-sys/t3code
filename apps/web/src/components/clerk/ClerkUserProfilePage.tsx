@@ -55,7 +55,7 @@ export function ClerkUserProfileRefreshButton({
       disabled={disabled || isPending}
       onClick={onClick}
     >
-      <RefreshCwIcon aria-hidden="true" className={cn("size-3.5", isPending && "animate-spin")} />
+      <RefreshCwIcon aria-hidden="true" className={cn(isPending && "animate-spin")} />
       Refresh
     </Button>
   );
