@@ -102,20 +102,16 @@ function AutocompletePopup({
         side={side}
         sideOffset={sideOffset}
       >
-        <span
+        <AutocompletePrimitive.Popup
           className={cn(
-            "dropdown-glass relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) rounded-lg transition-[scale,opacity] has-data-starting-style:scale-98 has-data-starting-style:opacity-0 has-data-ending-style:scale-98 has-data-ending-style:opacity-0",
+            "dropdown-glass relative flex max-h-[min(var(--available-height),23rem)] min-w-(--anchor-width) max-w-(--available-width) flex-col origin-(--transform-origin) rounded-lg text-foreground transition-[scale,opacity] data-starting-style:scale-98 data-starting-style:opacity-0 data-ending-style:scale-98 data-ending-style:opacity-0 data-instant:duration-0",
             className,
           )}
+          data-slot="autocomplete-popup"
+          {...props}
         >
-          <AutocompletePrimitive.Popup
-            className="flex max-h-[min(var(--available-height),23rem)] flex-1 flex-col text-foreground"
-            data-slot="autocomplete-popup"
-            {...props}
-          >
-            {children}
-          </AutocompletePrimitive.Popup>
-        </span>
+          {children}
+        </AutocompletePrimitive.Popup>
       </AutocompletePrimitive.Positioner>
     </AutocompletePrimitive.Portal>
   );
