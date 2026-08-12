@@ -31,7 +31,7 @@ describe("ChangedFilesCard", () => {
     expect(markup).toContain("@[24rem]/changed-files:inline");
     expect(markup).not.toContain("sm:inline");
     expect(markup).toContain('class="flex shrink-0 items-center gap-1.5"');
-    expect(markup).toContain("!size-[22px]");
+    expect(markup).not.toContain("!size-[22px]");
     expect(markup).toContain("size-3");
     expect(markup).toContain('aria-label="Collapse all folders"');
     expect(markup).toContain('aria-label="Open diff"');
