@@ -32,11 +32,33 @@ describe("ChangedFilesCard", () => {
     expect(markup).toContain('class="flex shrink-0 items-center gap-1.5"');
     expect(markup).not.toContain("!size-[22px]");
     expect(markup).toContain("size-3");
-    expect(markup).toContain('aria-label="Collapse all folders"');
+    // A root-only change has no folders to fold, so the collapse-all control
+    // is omitted instead of rendering as a dead button.
+    expect(markup).not.toContain("all folders");
     expect(markup).toContain('aria-label="Open diff"');
     expect(markup).toContain('role="group" aria-label="2 additions, 1 deletions"');
     expect(markup).toContain("1 changed file");
     expect(markup).not.toContain("1 changed files");
+  });
+
+  it("shows the collapse-all control when the change spans folders", () => {
+    const markup = renderToStaticMarkup(
+      <ChangedFilesCard
+        turnId={TurnId.make("turn-1")}
+        files={[
+          { path: "apps/web/src/App.tsx", kind: "modified", additions: 2, deletions: 1 },
+          { path: "README.md", kind: "modified", additions: 1, deletions: 0 },
+        ]}
+        expanded
+        showCompactPreview={false}
+        defaultAllDirectoriesExpanded
+        resolvedTheme="light"
+        onExpandedChange={() => {}}
+        onOpenTurnDiff={() => {}}
+      />,
+    );
+
+    expect(markup).toContain('aria-label="Collapse all folders"');
   });
 
   it("renders a scope and representative-file preview for a large latest change", () => {

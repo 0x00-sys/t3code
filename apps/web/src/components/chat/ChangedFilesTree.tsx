@@ -144,7 +144,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
           </span>
         </button>
         <div className="flex shrink-0 items-center gap-1.5">
-          {expanded ? (
+          {expanded && directoryPaths.length > 0 ? (
             <Tooltip>
               <TooltipTrigger
                 render={
