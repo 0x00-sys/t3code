@@ -12,10 +12,9 @@ describe("ChangedFilesCard", () => {
         files={[{ path: "README.md", kind: "modified", additions: 2, deletions: 1 }]}
         expanded
         showCompactPreview={false}
-        allDirectoriesExpanded
+        defaultAllDirectoriesExpanded
         resolvedTheme="light"
         onExpandedChange={() => {}}
-        onToggleAllDirectories={() => {}}
         onOpenTurnDiff={() => {}}
       />,
     );
@@ -57,10 +56,9 @@ describe("ChangedFilesCard", () => {
         ]}
         expanded={false}
         showCompactPreview
-        allDirectoriesExpanded={false}
+        defaultAllDirectoriesExpanded={false}
         resolvedTheme="light"
         onExpandedChange={() => {}}
-        onToggleAllDirectories={() => {}}
         onOpenTurnDiff={() => {}}
       />,
     );
@@ -85,10 +83,9 @@ describe("ChangedFilesCard", () => {
         files={[{ path: "apps/web/src/App.tsx", kind: "modified", additions: 120, deletions: 20 }]}
         expanded={false}
         showCompactPreview={false}
-        allDirectoriesExpanded={false}
+        defaultAllDirectoriesExpanded={false}
         resolvedTheme="light"
         onExpandedChange={() => {}}
-        onToggleAllDirectories={() => {}}
         onOpenTurnDiff={() => {}}
       />,
     );

@@ -32,10 +32,9 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
   files: ReadonlyArray<TurnDiffFileChange>;
   expanded: boolean;
   showCompactPreview: boolean;
-  allDirectoriesExpanded: boolean;
+  defaultAllDirectoriesExpanded: boolean;
   resolvedTheme: "light" | "dark";
   onExpandedChange: (expanded: boolean) => void;
-  onToggleAllDirectories: () => void;
   onOpenTurnDiff: (turnId: TurnId, filePath?: string) => void;
 }) {
   const {
@@ -43,16 +42,60 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
     files,
     expanded,
     showCompactPreview,
-    allDirectoriesExpanded,
+    defaultAllDirectoriesExpanded,
     resolvedTheme,
     onExpandedChange,
-    onToggleAllDirectories,
     onOpenTurnDiff,
   } = props;
   const summaryStat = useMemo(() => summarizeTurnDiffStats(files), [files]);
   const scopeSummary = useMemo(() => summarizeChangedFileScopes(files), [files]);
   const previewFiles = useMemo(() => selectChangedFilePreview(files), [files]);
   const compactPreviewVisible = showCompactPreview && !expanded;
+
+  const directoryPaths = useMemo(() => collectDirectoryPaths(buildTurnDiffTree(files)), [files]);
+  const directoryPathsKey = directoryPaths.join("\u0000");
+  const [directoryExpansionState, setDirectoryExpansionState] = useState<{
+    key: string;
+    baseline: boolean;
+    overrides: Record<string, boolean>;
+  }>(() => ({
+    key: directoryPathsKey,
+    baseline: defaultAllDirectoriesExpanded,
+    overrides: {},
+  }));
+  const stateIsCurrent = directoryExpansionState.key === directoryPathsKey;
+  const directoryBaseline = directoryExpansionState.baseline;
+  const expandedDirectories = stateIsCurrent
+    ? directoryExpansionState.overrides
+    : EMPTY_DIRECTORY_OVERRIDES;
+  const allDirectoriesExpanded = directoryPaths.every(
+    (pathValue) => expandedDirectories[pathValue] ?? directoryBaseline,
+  );
+
+  const toggleDirectory = useCallback(
+    (pathValue: string) => {
+      setDirectoryExpansionState((current) => {
+        const overrides = current.key === directoryPathsKey ? current.overrides : {};
+        return {
+          key: directoryPathsKey,
+          baseline: current.baseline,
+          overrides: {
+            ...overrides,
+            [pathValue]: !(overrides[pathValue] ?? current.baseline),
+          },
+        };
+      });
+    },
+    [directoryPathsKey],
+  );
+
+  const toggleAllDirectories = () => {
+    setDirectoryExpansionState({
+      key: directoryPathsKey,
+      baseline: !allDirectoriesExpanded,
+      overrides: {},
+    });
+  };
 
   return (
     <div
@@ -113,7 +156,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
                       allDirectoriesExpanded ? "Collapse all folders" : "Expand all folders"
                     }
                     data-scroll-anchor-ignore
-                    onClick={onToggleAllDirectories}
+                    onClick={toggleAllDirectories}
                   />
                 }
               >
@@ -152,8 +195,10 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
           key={`changed-files-tree:${turnId}`}
           turnId={turnId}
           files={files}
-          allDirectoriesExpanded={allDirectoriesExpanded}
+          allDirectoriesExpanded={directoryBaseline}
+          expandedDirectories={expandedDirectories}
           resolvedTheme={resolvedTheme}
+          onToggleDirectory={toggleDirectory}
           onOpenTurnDiff={onOpenTurnDiff}
         />
       ) : compactPreviewVisible ? (
@@ -205,43 +250,24 @@ export const ChangedFilesTree = memo(function ChangedFilesTree(props: {
   turnId: TurnId;
   files: ReadonlyArray<TurnDiffFileChange>;
   allDirectoriesExpanded: boolean;
+  expandedDirectories?: Record<string, boolean>;
   resolvedTheme: "light" | "dark";
+  onToggleDirectory?: (pathValue: string) => void;
   onOpenTurnDiff: (turnId: TurnId, filePath?: string) => void;
 }) {
-  const { files, allDirectoriesExpanded, onOpenTurnDiff, resolvedTheme, turnId } = props;
+  const {
+    files,
+    allDirectoriesExpanded,
+    expandedDirectories = EMPTY_DIRECTORY_OVERRIDES,
+    onToggleDirectory,
+    onOpenTurnDiff,
+    resolvedTheme,
+    turnId,
+  } = props;
   const treeNodes = useMemo(() => buildTurnDiffTree(files), [files]);
-  const directoryPathsKey = useMemo(
-    () => collectDirectoryPaths(treeNodes).join("\u0000"),
+  const hasDirectoryNodes = useMemo(
+    () => treeNodes.some((node) => node.kind === "directory"),
     [treeNodes],
-  );
-  const hasDirectoryNodes = directoryPathsKey.length > 0;
-  const expansionStateKey = `${allDirectoriesExpanded ? "expanded" : "collapsed"}\u0000${directoryPathsKey}`;
-  const [directoryExpansionState, setDirectoryExpansionState] = useState<{
-    key: string;
-    overrides: Record<string, boolean>;
-  }>(() => ({
-    key: expansionStateKey,
-    overrides: {},
-  }));
-  const expandedDirectories =
-    directoryExpansionState.key === expansionStateKey
-      ? directoryExpansionState.overrides
-      : EMPTY_DIRECTORY_OVERRIDES;
-
-  const toggleDirectory = useCallback(
-    (pathValue: string) => {
-      setDirectoryExpansionState((current) => {
-        const nextOverrides = current.key === expansionStateKey ? current.overrides : {};
-        return {
-          key: expansionStateKey,
-          overrides: {
-            ...nextOverrides,
-            [pathValue]: !(nextOverrides[pathValue] ?? allDirectoriesExpanded),
-          },
-        };
-      });
-    },
-    [allDirectoriesExpanded, expansionStateKey],
   );
 
   const renderTreeNode = (node: TurnDiffTreeNode, depth: number) => {
@@ -255,7 +281,7 @@ export const ChangedFilesTree = memo(function ChangedFilesTree(props: {
             data-scroll-anchor-ignore
             className="group flex w-full cursor-pointer items-center gap-1.5 rounded-xl py-1 pr-3 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
             style={{ paddingLeft: `${leftPadding}px` }}
-            onClick={() => toggleDirectory(node.path)}
+            onClick={() => onToggleDirectory?.(node.path)}
           >
             <ChevronRightIcon
               aria-hidden="true"

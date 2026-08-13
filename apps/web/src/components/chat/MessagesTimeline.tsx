@@ -1477,7 +1477,6 @@ function AssistantChangedFilesSectionInner({
   const [autoExpanded] = useState(() =>
     shouldAutoExpandChangedFiles(checkpointFiles, isLatestTurn),
   );
-  const [allDirectoriesExpanded, setAllDirectoriesExpanded] = useState(autoExpanded);
   const expanded = persistedExpanded ?? (isLatestTurn && autoExpanded);
 
   return (
@@ -1486,12 +1485,11 @@ function AssistantChangedFilesSectionInner({
       files={checkpointFiles}
       expanded={expanded}
       showCompactPreview={isLatestTurn}
-      allDirectoriesExpanded={allDirectoriesExpanded}
+      defaultAllDirectoriesExpanded={autoExpanded}
       resolvedTheme={resolvedTheme}
       onExpandedChange={(nextExpanded) =>
         setExpanded(routeThreadKey, turnSummary.turnId, nextExpanded)
       }
-      onToggleAllDirectories={() => setAllDirectoriesExpanded((current) => !current)}
       onOpenTurnDiff={onOpenTurnDiff}
     />
   );
