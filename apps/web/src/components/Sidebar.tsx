@@ -3800,7 +3800,7 @@ export default function Sidebar() {
                           onClick={toggleSnoozedShelf}
                           aria-expanded={snoozedShelfExpanded}
                           data-testid="sidebar-snoozed-shelf-toggle"
-                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 rounded-md px-[var(--sidebar-row-content-inset)] text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-ring"
+                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 rounded-[var(--control-radius)] px-[var(--sidebar-row-content-inset)] text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                             {snoozedShelfExpanded
@@ -3834,7 +3834,7 @@ export default function Sidebar() {
                           onClick={toggleSettledShelf}
                           aria-expanded={settledShelfExpanded}
                           data-testid="sidebar-settled-shelf-toggle"
-                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 rounded-md px-[var(--sidebar-row-content-inset)] text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-ring"
+                          className="mb-1 mt-3 flex w-full cursor-pointer items-center gap-2 rounded-[var(--control-radius)] px-[var(--sidebar-row-content-inset)] text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <span className="text-xs font-medium text-muted-foreground/50">
                             {settledShelfExpanded
