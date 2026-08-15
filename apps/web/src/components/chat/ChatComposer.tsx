@@ -2834,7 +2834,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
               <button
                 type="button"
                 className={cn(
-                  "min-w-0 flex-1 cursor-pointer truncate bg-transparent p-0 text-left text-[14px] focus:outline-none",
+                  "min-w-0 flex-1 cursor-pointer truncate rounded-sm bg-transparent p-0 text-left text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   (activePendingProgress ? activePendingProgress.customAnswer : prompt.trim())
                     ? "text-foreground"
                     : "text-placeholder",

@@ -359,9 +359,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
           <div key={descriptor.id}>
             {index > 0 || selectDescriptors.length > 0 ? <MenuDivider /> : null}
             <MenuGroup>
-              <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
-                {descriptor.label}
-              </div>
+              <MenuGroupLabel>{descriptor.label}</MenuGroupLabel>
               <MenuRadioGroup
                 value={selectedValue}
                 onValueChange={(value) => {

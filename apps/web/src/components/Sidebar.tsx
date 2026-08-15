@@ -511,7 +511,7 @@ const SidebarDraftRow = memo(function SidebarDraftRow(props: {
         tabIndex={0}
         data-testid="sidebar-draft-row"
         className={cn(
-          "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-[var(--control-radius)] text-left text-sidebar-foreground outline-none select-none",
+          "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-[var(--control-radius)] text-left text-sidebar-foreground outline-none select-none focus-visible:ring-2 focus-visible:ring-ring",
           props.isActive
             ? "bg-sidebar-row-active"
             : "bg-amber-400/[0.04] hover:bg-amber-400/[0.08]",
@@ -1085,7 +1085,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
   // a useful hierarchy nor a reliable hover cue. Status now lives in the row
   // content; surface is reserved for interaction (hover, multi-select, route).
   const rowSurfaceClassName = cn(
-    "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-[var(--control-radius)] text-left outline-none select-none",
+    "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-[var(--control-radius)] text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-ring",
     props.isActive
       ? "bg-sidebar-row-active text-sidebar-foreground"
       : isSelected
