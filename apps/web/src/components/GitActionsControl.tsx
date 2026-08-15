@@ -835,7 +835,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                                 key={value}
                                 value={value}
                                 className={cn(
-                                  "cursor-pointer rounded-md border px-3 py-1.5 text-center text-sm font-medium outline-none transition-[background-color,border-color,box-shadow] data-disabled:cursor-not-allowed data-disabled:opacity-64",
+                                  "cursor-pointer rounded-md border px-3 py-1.5 text-center text-sm font-medium outline-none transition-[color,background-color,border-color,box-shadow] data-disabled:cursor-not-allowed data-disabled:opacity-64",
                                   "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                                   isSelected
                                     ? "border-primary bg-background ring-2 ring-primary/35 text-foreground dark:border-transparent dark:bg-primary/10 dark:ring-1 dark:ring-primary/30"

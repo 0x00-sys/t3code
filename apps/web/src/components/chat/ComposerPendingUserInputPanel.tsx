@@ -208,7 +208,7 @@ const ComposerPendingUserInputCard = memo(function ComposerPendingUserInputCard(
           <ChevronDownIcon
             aria-hidden="true"
             className={cn(
-              "ml-auto size-3.5 shrink-0 text-secondary-label transition-transform duration-150 group-hover:text-foreground",
+              "ml-auto size-3.5 shrink-0 text-secondary-label transition-[color,transform] duration-150 group-hover:text-foreground",
               isCollapsed && "rotate-180",
             )}
           />
