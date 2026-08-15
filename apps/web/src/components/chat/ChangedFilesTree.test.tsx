@@ -172,7 +172,9 @@ describe("ChangedFilesTree", () => {
           turnId={TurnId.make("turn-1")}
           files={files}
           allDirectoriesExpanded={false}
+          expandedDirectories={{}}
           resolvedTheme="light"
+          onToggleDirectory={() => {}}
           onOpenTurnDiff={() => {}}
         />,
       );
@@ -248,7 +250,9 @@ describe("ChangedFilesTree", () => {
           turnId={TurnId.make("turn-1")}
           files={files}
           allDirectoriesExpanded
+          expandedDirectories={{}}
           resolvedTheme="light"
+          onToggleDirectory={() => {}}
           onOpenTurnDiff={() => {}}
         />,
       );

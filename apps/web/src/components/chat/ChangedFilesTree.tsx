@@ -252,15 +252,15 @@ export const ChangedFilesTree = memo(function ChangedFilesTree(props: {
   turnId: TurnId;
   files: ReadonlyArray<TurnDiffFileChange>;
   allDirectoriesExpanded: boolean;
-  expandedDirectories?: Record<string, boolean>;
+  expandedDirectories: Record<string, boolean>;
   resolvedTheme: "light" | "dark";
-  onToggleDirectory?: (pathValue: string) => void;
+  onToggleDirectory: (pathValue: string) => void;
   onOpenTurnDiff: (turnId: TurnId, filePath?: string) => void;
 }) {
   const {
     files,
     allDirectoriesExpanded,
-    expandedDirectories = EMPTY_DIRECTORY_OVERRIDES,
+    expandedDirectories,
     onToggleDirectory,
     onOpenTurnDiff,
     resolvedTheme,
@@ -283,7 +283,7 @@ export const ChangedFilesTree = memo(function ChangedFilesTree(props: {
             data-scroll-anchor-ignore
             className="group flex w-full cursor-pointer items-center gap-1.5 rounded-xl py-1 pr-3 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
             style={{ paddingLeft: `${leftPadding}px` }}
-            onClick={() => onToggleDirectory?.(node.path)}
+            onClick={() => onToggleDirectory(node.path)}
           >
             <ChevronRightIcon
               aria-hidden="true"
