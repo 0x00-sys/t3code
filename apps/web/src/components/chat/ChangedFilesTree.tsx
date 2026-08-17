@@ -116,7 +116,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
           type="button"
           aria-expanded={expanded}
           data-scroll-anchor-ignore
-          className="group flex min-w-0 flex-1 items-center rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex min-w-0 flex-1 cursor-pointer items-center rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => onExpandedChange(!expanded)}
         >
           <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">

@@ -22,8 +22,12 @@ describe("ChangedFilesCard", () => {
     expect(markup).toContain('data-changed-files-state="expanded"');
     expect(markup).toContain('aria-expanded="true"');
     expect(markup).toContain("whitespace-nowrap");
-    expect(markup).toContain('class="group flex min-w-0 flex-1 items-center rounded-xl');
-    expect(markup).not.toMatch(/class="group flex min-w-0 flex-1 items-center[^"]*overflow-hidden/);
+    expect(markup).toContain(
+      'class="group flex min-w-0 flex-1 cursor-pointer items-center rounded-xl',
+    );
+    expect(markup).not.toMatch(
+      /class="group flex min-w-0 flex-1 cursor-pointer items-center[^"]*overflow-hidden/,
+    );
     expect(markup).toContain('class="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden"');
     expect(markup).toContain('class="flex shrink-0 items-center gap-1 whitespace-nowrap');
     expect(markup).toContain('class="ml-1 hidden min-w-0 flex-1 truncate');

@@ -193,7 +193,7 @@ function ThemeLibraryCard({
                                 : `Use ${mode} variant, currently ${selected.option.label}`
                             }
                             aria-pressed={isActive}
-                            className="absolute left-1/2 top-2 z-20 flex size-14 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            className="absolute left-1/2 top-2 z-20 flex size-14 cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             style={{
                               transform: `translateX(calc(-50% + ${rootOffsetX}px))`,
                             }}
@@ -252,7 +252,7 @@ function ThemeLibraryCard({
                                     aria-label={`Use ${option.label} for ${mode} mode${optionIsActive ? ", currently active" : ""}`}
                                     aria-pressed={optionIsActive}
                                     className={cn(
-                                      "absolute left-1/2 top-1 z-30 flex size-7 items-center justify-center rounded-full bg-background shadow-sm outline-none transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-ring",
+                                      "absolute left-1/2 top-1 z-30 flex size-7 cursor-pointer items-center justify-center rounded-full bg-background shadow-sm outline-none transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-ring",
                                       optionIsActive ? "ring-2 ring-ring" : "ring-1 ring-border/70",
                                     )}
                                     style={{
