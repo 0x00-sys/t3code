@@ -40,7 +40,13 @@ const selectTriggerVariants = cva(
 
 const selectTriggerIconClassName = "-me-1 opacity-80";
 
-/** The trigger chevron, so SelectButton and SelectTrigger cannot drift apart. */
+/**
+ * The trigger chevron: the double chevron on bordered triggers, a single caret
+ * on ghost ones. SelectButton and SelectTrigger rendered different glyphs for
+ * the same role before this was shared, so both now go through here. The size
+ * is deliberately left off the className, which is what lets each size variant's
+ * `[&_svg:not([class*='size-'])]` rule set it (3.5 on compact, 4/3.5 on xs).
+ */
 function SelectTriggerIcon({
   variant,
 }: {
