@@ -27,6 +27,19 @@ import {
 
 const EMPTY_DIRECTORY_OVERRIDES: Record<string, boolean> = {};
 
+/**
+ * A directory's override, or undefined when the user has not toggled it. Reads
+ * own properties only: the overrides are a plain object keyed by directory
+ * path, so a top-level directory named `toString` or `constructor` would
+ * otherwise resolve Object.prototype's member and read as expanded.
+ */
+function directoryOverride(
+  overrides: Record<string, boolean>,
+  pathValue: string,
+): boolean | undefined {
+  return Object.hasOwn(overrides, pathValue) ? overrides[pathValue] : undefined;
+}
+
 export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
   turnId: TurnId;
   files: ReadonlyArray<TurnDiffFileChange>;
@@ -69,7 +82,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
     ? directoryExpansionState.overrides
     : EMPTY_DIRECTORY_OVERRIDES;
   const allDirectoriesExpanded = directoryPaths.every(
-    (pathValue) => expandedDirectories[pathValue] ?? directoryBaseline,
+    (pathValue) => directoryOverride(expandedDirectories, pathValue) ?? directoryBaseline,
   );
 
   const toggleDirectory = useCallback(
@@ -81,7 +94,7 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
           baseline: current.baseline,
           overrides: {
             ...overrides,
-            [pathValue]: !(overrides[pathValue] ?? current.baseline),
+            [pathValue]: !(directoryOverride(overrides, pathValue) ?? current.baseline),
           },
         };
       });
@@ -280,7 +293,8 @@ export const ChangedFilesTree = memo(function ChangedFilesTree(props: {
   const renderTreeNode = (node: TurnDiffTreeNode, depth: number) => {
     const leftPadding = 8 + depth * 14;
     if (node.kind === "directory") {
-      const isExpanded = expandedDirectories[node.path] ?? allDirectoriesExpanded;
+      const isExpanded =
+        directoryOverride(expandedDirectories, node.path) ?? allDirectoriesExpanded;
       return (
         <div key={`dir:${node.path}`}>
           <button

@@ -266,4 +266,33 @@ describe("ChangedFilesTree", () => {
       }
     },
   );
+
+  // Overrides are keyed by directory path on a plain object, so a top-level
+  // directory sharing a name with an Object.prototype member must still read as
+  // "no override" rather than inheriting a truthy one.
+  it("honors collapse-all for directories named like Object.prototype members", () => {
+    const markup = renderToStaticMarkup(
+      <ChangedFilesTree
+        turnId={TurnId.make("turn-1")}
+        files={[
+          { path: "toString/alpha.ts", kind: "modified", additions: 2, deletions: 1 },
+          { path: "toString/beta.ts", kind: "modified", additions: 1, deletions: 0 },
+          { path: "constructor/gamma.ts", kind: "modified", additions: 3, deletions: 0 },
+          { path: "constructor/delta.ts", kind: "modified", additions: 1, deletions: 1 },
+        ]}
+        allDirectoriesExpanded={false}
+        expandedDirectories={{}}
+        resolvedTheme="light"
+        onToggleDirectory={() => {}}
+        onOpenTurnDiff={() => {}}
+      />,
+    );
+
+    expect(markup).toContain("toString");
+    expect(markup).toContain("constructor");
+    expect(markup).not.toContain("alpha.ts");
+    expect(markup).not.toContain("beta.ts");
+    expect(markup).not.toContain("gamma.ts");
+    expect(markup).not.toContain("delta.ts");
+  });
 });
