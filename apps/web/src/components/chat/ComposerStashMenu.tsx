@@ -6,6 +6,7 @@ import { cn } from "~/lib/utils";
 import { type PromptStashEntry } from "../../promptStashStore";
 import { Command, CommandGroup, CommandGroupLabel, CommandItem, CommandList } from "../ui/command";
 import { Button } from "../ui/button";
+import { DROPDOWN_ELEVATION_CLASS } from "~/components/ui/popup-styles";
 
 const SNIPPET_MAX_CHARS = 90;
 
@@ -91,7 +92,12 @@ export const ComposerStashMenu = memo(function ComposerStashMenu(props: {
 
   return (
     <Command autoHighlight={false} mode="none">
-      <div className="dropdown-glass relative w-full overflow-hidden rounded-[20px] shadow-[0_16px_40px_-18px_rgb(0_0_0/55%)] dark:shadow-[0_18px_44px_-18px_rgb(0_0_0/80%)]">
+      <div
+        className={cn(
+          "dropdown-glass relative w-full overflow-hidden rounded-[20px]",
+          DROPDOWN_ELEVATION_CLASS,
+        )}
+      >
         <CommandList className="max-h-72">
           <CommandGroup>
             <CommandGroupLabel className="flex items-center gap-1.5 px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-secondary-label">

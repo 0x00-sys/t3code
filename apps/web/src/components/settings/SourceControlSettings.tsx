@@ -62,6 +62,7 @@ import {
   SettingsSection,
 } from "./settingsLayout";
 import { searchableSetting } from "./settingsSearch";
+import { ITEM_ROW_DESCRIPTION_CLASSNAME, ITEM_ROW_TITLE_CLASSNAME } from "./itemRows";
 
 const EMPTY_DISCOVERY_RESULT: SourceControlDiscoveryResult = {
   versionControlSystems: [],
@@ -279,9 +280,7 @@ function DiscoveryItemRow({
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <SourceControlItemMark item={item} />
-              <span className="truncate text-sm font-medium tracking-[-0.005em] text-foreground">
-                {item.label}
-              </span>
+              <span className={cn("truncate", ITEM_ROW_TITLE_CLASSNAME)}>{item.label}</span>
               {version ? <code className="text-xs text-muted-foreground">{version}</code> : null}
               {isVcsNotReady(item) ? (
                 <Badge variant="warning" size="sm">
@@ -294,7 +293,12 @@ function DiscoveryItemRow({
                 </Badge>
               ) : null}
             </div>
-            <p className="flex min-w-0 flex-wrap items-center gap-x-1 text-[13px] leading-[1.45] text-muted-foreground/80">
+            <p
+              className={cn(
+                "flex min-w-0 flex-wrap items-center gap-x-1",
+                ITEM_ROW_DESCRIPTION_CLASSNAME,
+              )}
+            >
               {itemSummary({ item, auth, authAccount })}
             </p>
           </div>

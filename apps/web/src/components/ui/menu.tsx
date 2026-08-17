@@ -6,6 +6,7 @@ import type * as React from "react";
 
 import { cn } from "~/lib/utils";
 import { SWITCH_TRACK_CLASS } from "./switch";
+import { DROPDOWN_ELEVATION_CLASS } from "~/components/ui/popup-styles";
 
 const MenuCreateHandle = MenuPrimitive.createHandle;
 
@@ -57,7 +58,8 @@ function MenuPopup({
       >
         <MenuPrimitive.Popup
           className={cn(
-            "dropdown-glass relative flex origin-(--transform-origin) rounded-lg shadow-[0_16px_40px_-18px_rgb(0_0_0/55%)] outline-none transition-[scale,opacity] focus:outline-none data-starting-style:scale-98 data-starting-style:opacity-0 data-ending-style:scale-98 data-ending-style:opacity-0 data-instant:duration-0 dark:shadow-[0_18px_44px_-18px_rgb(0_0_0/80%)]",
+            "dropdown-glass relative flex origin-(--transform-origin) rounded-lg outline-none transition-[scale,opacity] focus:outline-none data-starting-style:scale-98 data-starting-style:opacity-0 data-ending-style:scale-98 data-ending-style:opacity-0 data-instant:duration-0",
+            DROPDOWN_ELEVATION_CLASS,
             !hasExplicitWidthClass && "min-w-32",
             className,
           )}

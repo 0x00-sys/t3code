@@ -19,6 +19,7 @@ import {
   CommandSeparator,
 } from "../ui/command";
 import { PierreEntryIcon } from "./PierreEntryIcon";
+import { DROPDOWN_ELEVATION_CLASS } from "~/components/ui/popup-styles";
 
 export type ComposerCommandItem =
   | {
@@ -141,7 +142,10 @@ export const ComposerCommandMenu = memo(function ComposerCommandMenu(props: {
     >
       <div
         ref={listRef}
-        className="dropdown-glass relative w-full overflow-hidden rounded-[20px] shadow-[0_16px_40px_-18px_rgb(0_0_0/55%)] **:data-[slot=scroll-area-scrollbar]:data-[orientation=vertical]:my-4 dark:shadow-[0_18px_44px_-18px_rgb(0_0_0/80%)]"
+        className={cn(
+          "dropdown-glass relative w-full overflow-hidden rounded-[20px] **:data-[slot=scroll-area-scrollbar]:data-[orientation=vertical]:my-4",
+          DROPDOWN_ELEVATION_CLASS,
+        )}
       >
         {props.items.length > 0 ? (
           <CommandList className="max-h-72 not-empty:py-3">

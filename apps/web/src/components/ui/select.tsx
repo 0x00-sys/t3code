@@ -8,6 +8,7 @@ import { ChevronDownIcon, ChevronsUpDownIcon, ChevronUpIcon } from "lucide-react
 import type * as React from "react";
 
 import { cn } from "~/lib/utils";
+import { DROPDOWN_ELEVATION_CLASS } from "~/components/ui/popup-styles";
 
 const Select = SelectPrimitive.Root;
 
@@ -39,6 +40,19 @@ const selectTriggerVariants = cva(
 
 const selectTriggerIconClassName = "-me-1 opacity-80";
 
+/** The trigger chevron, so SelectButton and SelectTrigger cannot drift apart. */
+function SelectTriggerIcon({
+  variant,
+}: {
+  variant?: VariantProps<typeof selectTriggerVariants>["variant"];
+}) {
+  return variant === "ghost" ? (
+    <ChevronDownIcon className="-me-1 size-3 opacity-50" />
+  ) : (
+    <ChevronsUpDownIcon className={selectTriggerIconClassName} />
+  );
+}
+
 interface SelectButtonProps extends useRender.ComponentProps<"button"> {
   size?: VariantProps<typeof selectTriggerVariants>["size"];
   variant?: VariantProps<typeof selectTriggerVariants>["variant"];
@@ -53,11 +67,7 @@ function SelectButton({ className, size, variant, render, children, ...props }: 
     children: (
       <>
         <span className="flex-1 truncate in-data-placeholder:text-placeholder">{children}</span>
-        {variant === "ghost" ? (
-          <ChevronDownIcon className="-me-1 size-3 opacity-50" />
-        ) : (
-          <ChevronsUpDownIcon className={selectTriggerIconClassName} />
-        )}
+        <SelectTriggerIcon variant={variant} />
       </>
     ),
     className: cn(selectTriggerVariants({ size, variant }), "min-w-none", className),
@@ -89,12 +99,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon data-slot="select-icon">
-        {icon ??
-          (variant === "ghost" ? (
-            <ChevronDownIcon className="-me-1 size-3 opacity-50" />
-          ) : (
-            <ChevronsUpDownIcon className={selectTriggerIconClassName} />
-          ))}
+        {icon ?? <SelectTriggerIcon variant={variant} />}
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -157,7 +162,8 @@ function SelectPopup({
           </SelectPrimitive.ScrollUpArrow>
           <div
             className={cn(
-              "dropdown-glass relative h-full rounded-lg shadow-[0_16px_40px_-18px_rgb(0_0_0/55%)] dark:shadow-[0_18px_44px_-18px_rgb(0_0_0/80%)]",
+              "dropdown-glass relative h-full rounded-lg",
+              DROPDOWN_ELEVATION_CLASS,
               matchTriggerWidth && "min-w-(--anchor-width)",
               popupClassName,
             )}

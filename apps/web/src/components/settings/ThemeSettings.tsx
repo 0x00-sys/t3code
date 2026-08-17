@@ -49,6 +49,7 @@ import {
   type ThemeMode,
 } from "./ThemePreviewCircles";
 import { ThemeWireframe } from "./ThemeWireframe";
+import { ITEM_ROW_DESCRIPTION_CLASSNAME, ITEM_ROW_TITLE_CLASSNAME } from "./itemRows";
 
 const MAINTAINER_THEMES: ReadonlyArray<ThemeDefinition> = [
   T3_CHAT_THEME,
@@ -848,15 +849,13 @@ export function ThemeLibrary({
 
   return (
     <div className="space-y-3">
-      <p className="px-3 text-[13px] leading-[1.45] text-muted-foreground/80 sm:px-4">
+      <p className={cn("px-3 sm:px-4", ITEM_ROW_DESCRIPTION_CLASSNAME)}>
         Choose how T3 Code looks. Use a built-in theme or make your own.
       </p>
-      <h3 className="px-3 text-sm font-medium tracking-[-0.005em] text-foreground sm:px-4">
-        Color scheme
-      </h3>
+      <h3 className={cn("px-3 sm:px-4", ITEM_ROW_TITLE_CLASSNAME)}>Color scheme</h3>
       {renderModeTiles()}
       <div className="flex min-h-8 flex-wrap items-center justify-between gap-3 px-3 pt-2 sm:px-4">
-        <h3 className="text-sm font-medium tracking-[-0.005em] text-foreground">Themes</h3>
+        <h3 className={ITEM_ROW_TITLE_CLASSNAME}>Themes</h3>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button
             size="xs"

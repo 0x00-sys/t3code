@@ -50,6 +50,7 @@ import {
   getProviderVersionLabel,
   type ProviderStatusKey,
 } from "./providerStatus";
+import { ITEM_ROW_DESCRIPTION_CLASSNAME, ITEM_ROW_TITLE_CLASSNAME } from "./itemRows";
 
 const ENVIRONMENT_VARIABLE_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
@@ -531,9 +532,7 @@ export function ProviderInstanceCard({
   const titleHeadNode = (
     <>
       {titleIconNode}
-      <h3 className="truncate text-sm font-medium tracking-[-0.005em] text-foreground">
-        {displayName}
-      </h3>
+      <h3 className={cn("truncate", ITEM_ROW_TITLE_CLASSNAME)}>{displayName}</h3>
       {String(instanceId) !== String(instance.driver) ? (
         <code className="truncate rounded bg-muted/60 px-1 py-0.5 text-[10px] text-muted-foreground">
           {instanceId}
@@ -578,7 +577,9 @@ export function ProviderInstanceCard({
   );
 
   const authRowNode = (
-    <p className="flex min-w-0 flex-wrap items-center gap-x-1 text-[13px] leading-[1.45] text-muted-foreground/80">
+    <p
+      className={cn("flex min-w-0 flex-wrap items-center gap-x-1", ITEM_ROW_DESCRIPTION_CLASSNAME)}
+    >
       {hasAuthenticatedEmail ? (
         <>
           <span>Authenticated as</span>

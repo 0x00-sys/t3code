@@ -110,6 +110,7 @@ import {
   SettingsSection,
 } from "./settingsLayout";
 import { ProjectFaviconPickerDialog } from "./ProjectFaviconPickerDialog";
+import { ITEM_ROW_DESCRIPTION_CLASSNAME, ITEM_ROW_TITLE_CLASSNAME } from "./itemRows";
 
 export const PROJECT_GROUPING_MODE_LABELS: Record<SidebarProjectGroupingMode, string> = {
   repository: "Group by repository",
@@ -1026,8 +1027,8 @@ function ProjectDetail({ group }: { group: SidebarProjectSnapshot }) {
           ) : null}
           <div className="flex min-h-8 flex-col items-start gap-3 px-3 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4">
             <div className="min-w-0">
-              <h3 className="text-sm font-medium tracking-[-0.005em] text-foreground">Actions</h3>
-              <p className="text-pretty text-[13px] leading-[1.45] text-muted-foreground/80">
+              <h3 className={ITEM_ROW_TITLE_CLASSNAME}>Actions</h3>
+              <p className={cn("text-pretty", ITEM_ROW_DESCRIPTION_CLASSNAME)}>
                 Saved and run only in {selectedCheckoutLabel}.
               </p>
             </div>
