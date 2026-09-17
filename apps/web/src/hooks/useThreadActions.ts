@@ -410,20 +410,6 @@ export function useThreadActions() {
 
       const completeDeletion = async (): Promise<AtomCommandResult<unknown, unknown>> => {
         let deleteWorktreePath: string | undefined;
-        if (thread.session && thread.session.status !== "stopped") {
-          const stopResult = await stopThreadSession({
-            environmentId: threadRef.environmentId,
-            input: { threadId: threadRef.threadId },
-          });
-          if (stopResult._tag === "Failure") return stopResult;
-        }
-
-        const closeResult = await closeTerminal({
-          environmentId: threadRef.environmentId,
-          input: { threadId: threadRef.threadId, deleteHistory: false },
-        });
-        if (closeResult._tag === "Failure") return closeResult;
-
         if (shouldDeleteWorktree && orphanedWorktreePath && threadProject) {
           // Archived threads are absent from the sidebar; refresh them before removing files.
           const archived = await executeAtomQuery(
@@ -473,6 +459,20 @@ export function useThreadActions() {
             deleteWorktreePath = orphanedWorktreePath;
           }
         }
+
+        if (thread.session && thread.session.status !== "stopped") {
+          const stopResult = await stopThreadSession({
+            environmentId: threadRef.environmentId,
+            input: { threadId: threadRef.threadId },
+          });
+          if (stopResult._tag === "Failure") return stopResult;
+        }
+
+        const closeResult = await closeTerminal({
+          environmentId: threadRef.environmentId,
+          input: { threadId: threadRef.threadId, deleteHistory: false },
+        });
+        if (closeResult._tag === "Failure") return closeResult;
 
         const deletedThreadIds = deletedIds ?? new Set<ThreadId>();
         const currentRouteThreadRef = getCurrentRouteThreadRef();

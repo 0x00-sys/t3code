@@ -449,15 +449,29 @@ it("retains a thread that changes worktrees while its reference check is pending
   expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":thread:delete"))).toBe(false);
 });
 
-it("does not use destructive client cleanup against an older server", async () => {
+it("keeps the session and terminal running when an older server cannot delete the worktree", async () => {
   mocks.recoverableDeletion = false;
+  mocks.readThreadShell.mockImplementation(({ threadId }) => {
+    const thread = threads.find((entry) => entry.id === threadId);
+    return thread ? { ...thread, session: { status: "ready" } } : null;
+  });
   const result = await actions.deleteThread(entries[0]!.threadRef);
   expect(result._tag).toBe("Failure");
-  expect(
-    mocks.run.mock.calls.some(
-      ([label]) => label.endsWith(":thread:delete") || label.endsWith(":remove-worktree"),
-    ),
-  ).toBe(false);
+  expect(mocks.run).not.toHaveBeenCalled();
+});
+
+it("still deletes on an older server when refreshed references require keeping the worktree", async () => {
+  mocks.recoverableDeletion = false;
+  mocks.archived.mockResolvedValue(
+    AsyncResult.success({
+      threads: [{ id: ThreadId.make("archived"), worktreePath: "/repo/one" }],
+    }),
+  );
+  expect((await actions.deleteThread(entries[0]!.threadRef))._tag).toBe("Success");
+  expect(mocks.run.mock.calls.find(([label]) => label.endsWith(":thread:delete"))?.[1]).toEqual({
+    environmentId,
+    input: { threadId: threads[0]!.id },
+  });
 });
 
 it("reports committed deletion separately from pending cleanup and retries only cleanup", async () => {
