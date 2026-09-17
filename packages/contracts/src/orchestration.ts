@@ -1111,6 +1111,7 @@ const ThreadDeleteCommand = Schema.Struct({
   type: Schema.Literal("thread.delete"),
   commandId: CommandId,
   threadId: ThreadId,
+  deleteWorktreePath: Schema.optional(TrimmedNonEmptyString),
 });
 
 const ThreadArchiveCommand = Schema.Struct({
@@ -2235,6 +2236,13 @@ export type ProjectionPendingApprovalDecision = typeof ProjectionPendingApproval
 
 export const DispatchResult = Schema.Struct({
   sequence: NonNegativeInt,
+  worktreeCleanupPending: Schema.optional(
+    Schema.Struct({
+      cwd: TrimmedNonEmptyString,
+      path: TrimmedNonEmptyString,
+      retryable: Schema.Boolean,
+    }),
+  ),
 });
 export type DispatchResult = typeof DispatchResult.Type;
 

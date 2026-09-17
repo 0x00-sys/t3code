@@ -3,6 +3,7 @@ import * as React from "react";
 import { defaultAnimateLayoutChanges, type AnimateLayoutChanges } from "@dnd-kit/sortable";
 import {
   isAtomCommandInterrupted,
+  settlePromise,
   type AtomCommandResult,
 } from "@t3tools/client-runtime/state/runtime";
 import type { ContextMenuItem } from "@t3tools/contracts";
@@ -417,15 +418,19 @@ export async function deleteSelectedThreadEntries<
 
   for (const entry of input.entries) {
     let deferred = false;
-    const result = await input.delete(entry, deletedThreadKeys, (deleteThread) => {
-      deferred = true;
-      pendingDeletions.push(
-        deleteThread().then((result) => {
-          if (result._tag === "Success") deletedThreadKeys.add(entry.threadKey);
-          else if (!isAtomCommandInterrupted(result)) firstFailure ??= result;
-        }),
-      );
-    });
+    const attempt = await settlePromise(() =>
+      input.delete(entry, deletedThreadKeys, (deleteThread) => {
+        deferred = true;
+        pendingDeletions.push(
+          settlePromise(deleteThread).then((attempt) => {
+            const result = attempt._tag === "Failure" ? attempt : attempt.value;
+            if (result._tag === "Success") deletedThreadKeys.add(entry.threadKey);
+            else if (!isAtomCommandInterrupted(result)) firstFailure ??= result;
+          }),
+        );
+      }),
+    );
+    const result = attempt._tag === "Failure" ? attempt : attempt.value;
     if (result === null || deferred) continue;
     if (result._tag === "Failure") {
       if (isAtomCommandInterrupted(result)) break;
@@ -435,8 +440,7 @@ export async function deleteSelectedThreadEntries<
     deletedThreadKeys.add(entry.threadKey);
   }
 
-  // Worktree removal must succeed before its last thread disappears. Independent
-  // deletions can overlap; the VCS scheduler serializes work within each repository.
+  // Wait for every outcome, including rejected promises, before updating selection.
   await Promise.all(pendingDeletions);
   return { deletedThreadKeys, firstFailure };
 }

@@ -3967,36 +3967,39 @@ export default function Sidebar() {
         title: `Deleting ${count} thread${count === 1 ? "" : "s"}…`,
         timeout: 0,
       });
-      const { deletedThreadKeys, firstFailure } = await deleteSelectedThreadEntries({
-        entries: threadKeys.map((threadKey) => ({ threadKey })),
-        delete: async ({ threadKey }, deletedThreadKeys, deferDeletion) => {
-          const thread = threadByKeyRef.current.get(threadKey);
-          if (!thread) return null;
-          return deleteThread(scopeThreadRef(thread.environmentId, thread.id), {
-            deletedThreadKeys,
-            deferDeletion,
-            worktreeDeletionConfirmed: true,
-          });
-        },
-      });
-      toastManager.close(deletionToast);
-      if (firstFailure !== null) {
-        const firstError = squashAtomCommandFailure(firstFailure);
-        toastManager.add(
-          stackedThreadToast({
-            type: "error",
-            title: "Some threads could not be deleted",
-            description: `${firstError instanceof Error ? firstError.message : "An error occurred."} Remaining threads were kept; you can retry deleting them.`,
-            timeout: 0,
+      try {
+        const { deletedThreadKeys, firstFailure } = await deleteSelectedThreadEntries({
+          entries: threadKeys.map((threadKey) => ({ threadKey })),
+          delete: async ({ threadKey }, deletedThreadKeys, deferDeletion) => {
+            const thread = threadByKeyRef.current.get(threadKey);
+            if (!thread) return null;
+            return deleteThread(scopeThreadRef(thread.environmentId, thread.id), {
+              deletedThreadKeys,
+              deferDeletion,
+              worktreeDeletionConfirmed: true,
+            });
+          },
+        });
+        if (firstFailure !== null) {
+          const firstError = squashAtomCommandFailure(firstFailure);
+          toastManager.add(
+            stackedThreadToast({
+              type: "error",
+              title: "Some threads could not be deleted",
+              description: `${firstError instanceof Error ? firstError.message : "An error occurred."} Remaining threads were kept; you can retry deleting them.`,
+              timeout: 0,
+            }),
+          );
+        }
+        removeFromSelection(
+          getThreadKeysToDeselectAfterDelete(selectedThreadKeys, deletedThreadKeys, (threadKey) => {
+            const threadRef = parseScopedThreadKey(threadKey);
+            return threadRef !== null && readThreadShell(threadRef) !== null;
           }),
         );
+      } finally {
+        toastManager.close(deletionToast);
       }
-      removeFromSelection(
-        getThreadKeysToDeselectAfterDelete(selectedThreadKeys, deletedThreadKeys, (threadKey) => {
-          const threadRef = parseScopedThreadKey(threadKey);
-          return threadRef !== null && readThreadShell(threadRef) !== null;
-        }),
-      );
     },
     [
       attemptSettle,

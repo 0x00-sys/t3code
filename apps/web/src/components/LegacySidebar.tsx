@@ -1969,33 +1969,36 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         title: `Deleting ${count} thread${count === 1 ? "" : "s"}…`,
         timeout: 0,
       });
-      const { deletedThreadKeys, firstFailure } = await deleteSelectedThreadEntries({
-        entries: selectedThreadEntries,
-        delete: ({ threadRef }, deletedThreadKeys, deferDeletion) =>
-          deleteThread(threadRef, {
-            deletedThreadKeys,
-            deferDeletion,
-            worktreeDeletionConfirmed: true,
-          }),
-      });
-      toastManager.close(deletionToast);
-      if (firstFailure !== null) {
-        const firstError = squashAtomCommandFailure(firstFailure);
-        toastManager.add(
-          stackedThreadToast({
-            type: "error",
-            title: "Some threads could not be deleted",
-            description: `${firstError instanceof Error ? firstError.message : "An error occurred."} Remaining threads were kept; you can retry deleting them.`,
-            timeout: 0,
+      try {
+        const { deletedThreadKeys, firstFailure } = await deleteSelectedThreadEntries({
+          entries: selectedThreadEntries,
+          delete: ({ threadRef }, deletedThreadKeys, deferDeletion) =>
+            deleteThread(threadRef, {
+              deletedThreadKeys,
+              deferDeletion,
+              worktreeDeletionConfirmed: true,
+            }),
+        });
+        if (firstFailure !== null) {
+          const firstError = squashAtomCommandFailure(firstFailure);
+          toastManager.add(
+            stackedThreadToast({
+              type: "error",
+              title: "Some threads could not be deleted",
+              description: `${firstError instanceof Error ? firstError.message : "An error occurred."} Remaining threads were kept; you can retry deleting them.`,
+              timeout: 0,
+            }),
+          );
+        }
+        removeFromSelection(
+          getThreadKeysToDeselectAfterDelete(threadKeys, deletedThreadKeys, (threadKey) => {
+            const threadRef = parseScopedThreadKey(threadKey);
+            return threadRef !== null && readThreadShell(threadRef) !== null;
           }),
         );
+      } finally {
+        toastManager.close(deletionToast);
       }
-      removeFromSelection(
-        getThreadKeysToDeselectAfterDelete(threadKeys, deletedThreadKeys, (threadKey) => {
-          const threadRef = parseScopedThreadKey(threadKey);
-          return threadRef !== null && readThreadShell(threadRef) !== null;
-        }),
-      );
     },
     [
       appSettingsConfirmThreadArchive,

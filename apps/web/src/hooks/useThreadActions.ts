@@ -35,6 +35,7 @@ import {
   readEnvironmentSupportsPinReorder,
   readEnvironmentSupportsActiveReorder,
   readEnvironmentSupportsSettlement,
+  readEnvironmentSupportsRecoverableDeletion,
   readEnvironmentSupportsSnooze,
   readEnvironmentThreadRefs,
   readProject,
@@ -221,6 +222,7 @@ export function useThreadActions() {
   const removeWorktree = useAtomCommand(vcsEnvironment.removeWorktree, {
     reportFailure: false,
   });
+  const refreshVcsStatus = useAtomCommand(vcsEnvironment.refreshStatus, { reportFailure: false });
   const sidebarThreadSortOrder = useClientSettings((settings) => settings.sidebarThreadSortOrder);
   const confirmThreadDelete = useClientSettings((settings) => settings.confirmThreadDelete);
   const confirmThreadUnpin = useClientSettings((settings) => settings.confirmThreadUnpin);
@@ -389,6 +391,7 @@ export function useThreadActions() {
       }
 
       const completeDeletion = async (): Promise<AtomCommandResult<unknown, unknown>> => {
+        let deleteWorktreePath: string | undefined;
         if (thread.session && thread.session.status !== "stopped") {
           const stopResult = await stopThreadSession({
             environmentId: threadRef.environmentId,
@@ -440,15 +443,16 @@ export function useThreadActions() {
             getOrphanedWorktreePathForThread([...remaining, thread], thread.id) ===
             orphanedWorktreePath
           ) {
-            const removeResult = await removeWorktree({
-              environmentId: threadRef.environmentId,
-              input: {
-                cwd: threadProject.workspaceRoot,
-                path: orphanedWorktreePath,
-                force: true,
-              },
-            });
-            if (removeResult._tag === "Failure") return removeResult;
+            if (!readEnvironmentSupportsRecoverableDeletion(threadRef.environmentId)) {
+              return AsyncResult.failure(
+                Cause.fail(
+                  new Error(
+                    "Update this environment's server to delete threads and worktrees safely.",
+                  ),
+                ),
+              );
+            }
+            deleteWorktreePath = orphanedWorktreePath;
           }
         }
 
@@ -465,10 +469,59 @@ export function useThreadActions() {
         });
         const deleteResult = await deleteThreadMutation({
           environmentId: threadRef.environmentId,
-          input: { threadId: threadRef.threadId },
+          input: {
+            threadId: threadRef.threadId,
+            ...(deleteWorktreePath ? { deleteWorktreePath } : {}),
+          },
+        }).finally(() => {
+          if (deleteWorktreePath && threadProject) {
+            // This command also invalidates live and persisted worktree-ref caches.
+            // A refresh failure must not turn a committed deletion into a failure.
+            void settlePromise(() =>
+              refreshVcsStatus({
+                environmentId: threadRef.environmentId,
+                input: { cwd: threadProject.workspaceRoot },
+              }),
+            );
+          }
         });
         if (deleteResult._tag === "Failure") {
           return deleteResult;
+        }
+        const pendingCleanup = deleteResult.value.worktreeCleanupPending;
+        if (pendingCleanup) {
+          const cleanupToast = toastManager.add(
+            stackedThreadToast({
+              type: "error",
+              title: "Thread deleted; worktree cleanup incomplete",
+              description: pendingCleanup.retryable
+                ? `Remaining files are at ${pendingCleanup.path}. Retry to remove them.`
+                : `Files are preserved at ${pendingCleanup.path}, but cleanup could not be verified. Refresh and check worktree references before removing them.`,
+              timeout: 0,
+              ...(pendingCleanup.retryable
+                ? {
+                    actionProps: {
+                      children: "Retry cleanup",
+                      onClick: async () => {
+                        const retry = await removeWorktree({
+                          environmentId: threadRef.environmentId,
+                          input: {
+                            cwd: pendingCleanup.cwd,
+                            path: pendingCleanup.path,
+                            force: true,
+                          },
+                        });
+                        if (retry._tag === "Success") toastManager.close(cleanupToast);
+                        else
+                          toastManager.update(cleanupToast, {
+                            description: `Files remain at ${pendingCleanup.path}. ${String(squashAtomCommandFailure(retry))}`,
+                          });
+                      },
+                    },
+                  }
+                : {}),
+            }),
+          );
         }
         refreshArchivedThreadsForEnvironment(threadRef.environmentId);
         releaseComposerDraftUploads(threadRef);
@@ -532,6 +585,7 @@ export function useThreadActions() {
       deleteThreadMutation,
       getCurrentRouteThreadRef,
       removeWorktree,
+      refreshVcsStatus,
       router,
       resolveThreadTarget,
       sidebarThreadSortOrder,
