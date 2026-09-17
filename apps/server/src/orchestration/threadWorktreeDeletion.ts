@@ -1,8 +1,10 @@
 import * as NodeCrypto from "node:crypto";
 import {
+  GitCommandError,
   OrchestrationDispatchCommandError,
   type DispatchResult,
   type OrchestrationCommand,
+  type VcsRemoveWorktreeInput,
 } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -14,6 +16,37 @@ import { GitVcsDriver } from "../vcs/GitVcsDriver.ts";
 import { ProjectionSnapshotQuery } from "./Services/ProjectionSnapshotQuery.ts";
 
 const locks = new Map<string, { semaphore: Semaphore.Semaphore; users: number }>();
+
+/** Cleanup retries may arrive long after deletion, when another thread uses the files. */
+export const removeUnusedWorktree = Effect.fn("removeUnusedWorktree")(function* (
+  input: VcsRemoveWorktreeInput,
+  remove: Effect.Effect<void, GitCommandError>,
+) {
+  const path = yield* Path.Path;
+  const snapshots = yield* ProjectionSnapshotQuery;
+  const error = (detail: string) =>
+    new GitCommandError({
+      operation: "removeWorktree",
+      command: "git worktree remove",
+      cwd: input.cwd,
+      detail,
+    });
+  const snapshot = yield* snapshots
+    .getCommandReadModel()
+    .pipe(Effect.mapError(() => error("Could not verify worktree references. Files were kept.")));
+  const target = path.resolve(input.path);
+  if (
+    snapshot.threads.some(
+      (thread) =>
+        thread.deletedAt === null &&
+        thread.worktreePath !== null &&
+        path.resolve(thread.worktreePath) === target,
+    )
+  ) {
+    return yield* error("This worktree is still used by a thread. Files were kept.");
+  }
+  yield* remove;
+});
 
 /** Keep all files (including ignored files and the Git index) until deletion commits.
  * A stable staging path also lets a retry restore a worktree after a server crash.

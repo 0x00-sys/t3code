@@ -19,7 +19,7 @@ import * as Git from "../vcs/GitVcsDriver.ts";
 import { decideOrchestrationCommand } from "./decider.ts";
 import { createEmptyReadModel, projectEvent } from "./projector.ts";
 import { ProjectionSnapshotQuery } from "./Services/ProjectionSnapshotQuery.ts";
-import { withThreadWorktreeDeletion } from "./threadWorktreeDeletion.ts";
+import { removeUnusedWorktree, withThreadWorktreeDeletion } from "./threadWorktreeDeletion.ts";
 import { PersistenceSqlError } from "../persistence/Errors.ts";
 
 const TestLayer = Git.layer.pipe(
@@ -91,6 +91,10 @@ const fixture = Effect.gen(function* () {
   } as const;
   const crypto = yield* Crypto.Crypto;
   let snapshotError: PersistenceSqlError | null = null;
+  const snapshots = Layer.mock(ProjectionSnapshotQuery)({
+    getCommandReadModel: () =>
+      snapshotError ? Effect.fail(snapshotError) : Effect.succeed(snapshot),
+  });
   const execute = <E, AfterError = never>(
     commit: Effect.Effect<{ sequence: number }, E>,
     afterCommit: Effect.Effect<void, AfterError> = Effect.void,
@@ -121,14 +125,7 @@ const fixture = Effect.gen(function* () {
               }),
         ),
       ),
-    ).pipe(
-      Effect.provide(
-        Layer.mock(ProjectionSnapshotQuery)({
-          getCommandReadModel: () =>
-            snapshotError ? Effect.fail(snapshotError) : Effect.succeed(snapshot),
-        }),
-      ),
-    );
+    ).pipe(Effect.provide(snapshots));
 
   return {
     fs,
@@ -140,6 +137,10 @@ const fixture = Effect.gen(function* () {
     worktree,
     command,
     execute,
+    retryCleanup: (target: string) => {
+      const input = { cwd, path: target, force: true };
+      return removeUnusedWorktree(input, git.removeWorktree(input)).pipe(Effect.provide(snapshots));
+    },
     snapshot,
     getSnapshot: () => snapshot,
     failSnapshotRead: () => {
@@ -320,8 +321,40 @@ it.layer(TestLayer)("recoverable worktree deletion", (it) => {
       const staged = result.worktreeCleanupPending!.path;
       expect(yield* f.fs.readFileString(f.path.join(staged, "ignored"))).toBe("ignored contents");
       yield* f.run(["worktree", "unlock", staged]);
-      yield* f.git.removeWorktree({ cwd: f.cwd, path: staged, force: true });
+      const snapshot = f.getSnapshot();
+      for (const archivedAt of [null, "2026-09-17T00:00:00.000Z"]) {
+        f.setSnapshot({
+          ...snapshot,
+          threads: [
+            ...snapshot.threads,
+            {
+              ...f.snapshot.threads[0]!,
+              id: ThreadId.make("new-user"),
+              worktreePath: staged,
+              archivedAt,
+            },
+          ],
+        });
+        const failure = yield* f.retryCleanup(staged).pipe(Effect.flip);
+        expect(failure.message).toContain("still used by a thread");
+        expect(yield* f.fs.readFileString(f.path.join(staged, "ignored"))).toBe("ignored contents");
+        expect((yield* f.run(["show", ":tracked"], staged)).stdout).toBe("staged");
+      }
+      f.setSnapshot(snapshot);
+      yield* f.retryCleanup(staged);
       expect(yield* f.fs.exists(staged)).toBe(false);
+    }),
+  );
+
+  it.effect("keeps files if cleanup retry cannot read current references", () =>
+    Effect.gen(function* () {
+      const f = yield* fixture;
+      f.failSnapshotRead();
+      const failure = yield* f.retryCleanup(f.worktree).pipe(Effect.flip);
+      expect(failure.message).toContain("Could not verify worktree references");
+      expect(yield* f.fs.readFileString(f.path.join(f.worktree, "ignored"))).toBe(
+        "ignored contents",
+      );
     }),
   );
 

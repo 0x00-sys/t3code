@@ -209,6 +209,48 @@ it("keeps a worktree still used by an archived thread", async () => {
   ).toBe(false);
 });
 
+it.each([false, true])(
+  "uses recoverable deletion for an archived target (failure=%s)",
+  async (fail) => {
+    mocks.readThreadShell.mockReturnValue(null);
+    mocks.archived.mockResolvedValue(AsyncResult.success({ threads: [threads[0]] }));
+    const deletion = fail
+      ? AsyncResult.failure(Cause.fail(new Error("worktree locked")))
+      : AsyncResult.success({ sequence: 1 });
+    mocks.run.mockImplementation(async (label) =>
+      label.endsWith(":thread:delete") ? deletion : AsyncResult.success({ sequence: 1 }),
+    );
+
+    expect(await actions.deleteThread(entries[0]!.threadRef)).toBe(deletion);
+    expect(mocks.run.mock.calls.find(([label]) => label.endsWith(":thread:delete"))?.[1]).toEqual({
+      environmentId,
+      input: { threadId: threads[0]!.id, deleteWorktreePath: "/repo/one" },
+    });
+    expect(mocks.confirm).not.toHaveBeenCalled();
+  },
+);
+
+it("keeps an archived target's worktree when another archived thread shares it", async () => {
+  mocks.readThreadShell.mockReturnValue(null);
+  mocks.archived.mockResolvedValue(
+    AsyncResult.success({
+      threads: [threads[0], { ...threads[1], worktreePath: "/repo/one" }],
+    }),
+  );
+  await actions.deleteThread(entries[0]!.threadRef);
+  expect(mocks.run.mock.calls.find(([label]) => label.endsWith(":thread:delete"))?.[1]).toEqual({
+    environmentId,
+    input: { threadId: threads[0]!.id },
+  });
+});
+
+it("does not delete an unresolved target when its archived shell cannot be loaded", async () => {
+  mocks.readThreadShell.mockReturnValue(null);
+  mocks.archived.mockResolvedValue(AsyncResult.failure(Cause.fail(new Error("offline"))));
+  expect((await actions.deleteThread(entries[0]!.threadRef))._tag).toBe("Failure");
+  expect(mocks.run).not.toHaveBeenCalled();
+});
+
 it("keeps the conversation if archived threads cannot be checked", async () => {
   mocks.archived.mockResolvedValue(AsyncResult.failure(Cause.fail(new Error("offline"))));
   const result = await actions.deleteThread(entries[0]!.threadRef);

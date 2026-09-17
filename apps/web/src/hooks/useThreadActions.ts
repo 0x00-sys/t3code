@@ -328,9 +328,27 @@ export function useThreadActions() {
         deferDeletion?: (deleteThread: () => Promise<AtomCommandResult<unknown, unknown>>) => void;
       } = {},
     ) => {
-      const resolved = resolveThreadTarget(target);
+      let resolved = resolveThreadTarget(target);
       if (!resolved) {
-        // Thread not in main store (e.g. archived thread) — dispatch delete directly.
+        const archived = await executeAtomQuery(
+          appAtomRegistry,
+          orchestrationEnvironment.archivedShellSnapshot({
+            environmentId: target.environmentId,
+            input: {},
+          }),
+          { refresh: true, reportFailure: false },
+        );
+        if (archived._tag === "Failure") return archived;
+        const thread = archived.value.threads.find((entry) => entry.id === target.threadId);
+        if (thread) {
+          resolved = {
+            thread: { ...thread, environmentId: target.environmentId },
+            threadRef: target,
+          };
+        }
+      }
+      if (!resolved) {
+        // No live or archived shell remains; dispatch the ordinary idempotent delete.
         const result = await deleteThreadMutation({
           environmentId: target.environmentId,
           input: { threadId: target.threadId },
@@ -363,7 +381,7 @@ export function useThreadActions() {
           ? threads.filter((entry) => entry.id === threadRef.threadId || !deletedIds.has(entry.id))
           : threads;
       const orphanedWorktreePath = getOrphanedWorktreePathForThread(
-        survivingThreads,
+        [...survivingThreads, thread],
         threadRef.threadId,
       );
       const displayWorktreePath = orphanedWorktreePath
