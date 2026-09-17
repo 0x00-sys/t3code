@@ -9,6 +9,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 
 import { deleteSelectedThreadEntries } from "../components/Sidebar.logic";
 import { useThreadActions } from "./useThreadActions";
+import { appAtomRegistry } from "../rpc/atomRegistry";
+import { environmentServerConfigsAtom } from "../state/server";
 
 const mocks = vi.hoisted(() => ({
   confirm: vi.fn(async () => true),
@@ -18,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   readEnvironmentThreadRefs: vi.fn(),
   confirmThreadDelete: false,
   recoverableDeletion: true,
+  automaticCleanup: false,
   archived: vi.fn(),
   toastAdd: vi.fn(
     (_toast: {
@@ -29,6 +32,30 @@ const mocks = vi.hoisted(() => ({
   toastClose: vi.fn(),
   toastUpdate: vi.fn(),
 }));
+vi.mock("../state/server", async (importOriginal) => {
+  const { Atom } = await import("effect/unstable/reactivity");
+  const { DEFAULT_SERVER_SETTINGS, EnvironmentId } = await import("@t3tools/contracts");
+  return {
+    ...(await importOriginal<typeof import("../state/server")>()),
+    environmentServerConfigsAtom: Atom.make(
+      () =>
+        new Map([
+          [
+            EnvironmentId.make("local"),
+            {
+              settings: {
+                ...DEFAULT_SERVER_SETTINGS,
+                storageCleanup: {
+                  ...DEFAULT_SERVER_SETTINGS.storageCleanup,
+                  worktreeOnDelete: mocks.automaticCleanup,
+                },
+              },
+            },
+          ],
+        ]),
+    ),
+  };
+});
 vi.mock("@t3tools/client-runtime/state/runtime", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@t3tools/client-runtime/state/runtime")>()),
   executeAtomQuery: mocks.archived,
@@ -92,6 +119,8 @@ beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   mocks.confirmThreadDelete = false;
   mocks.recoverableDeletion = true;
+  mocks.automaticCleanup = false;
+  appAtomRegistry.refresh(environmentServerConfigsAtom);
   mocks.readProject.mockReturnValue({ workspaceRoot: "/repo" });
   mocks.confirm.mockResolvedValue(true);
   mocks.run.mockResolvedValue(AsyncResult.success({ sequence: 1 }));
@@ -194,6 +223,25 @@ it("still offers to keep a worktree for single deletion when confirmations are o
     ),
   ).toBe(false);
 });
+
+it.each([false, true])(
+  "respects automatic cleanup with confirmations enabled=%s",
+  async (confirmations) => {
+    mocks.automaticCleanup = true;
+    mocks.confirmThreadDelete = confirmations;
+    appAtomRegistry.refresh(environmentServerConfigsAtom);
+    act(() => renderer.update(<Probe />));
+    expect((await actions.deleteThread(entries[0]!.threadRef))._tag).toBe("Success");
+    expect(mocks.confirm).not.toHaveBeenCalled();
+    expect(mocks.run.mock.calls.find(([label]) => label.endsWith(":thread:delete"))?.[1]).toEqual({
+      environmentId,
+      input: {
+        threadId: threads[0]!.id,
+        ...(!confirmations ? { deleteWorktreePath: "/repo/one" } : {}),
+      },
+    });
+  },
+);
 
 it("keeps a worktree still used by an archived thread", async () => {
   mocks.archived.mockResolvedValue(
