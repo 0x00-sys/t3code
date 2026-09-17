@@ -3955,30 +3955,39 @@ export default function Sidebar() {
           api.dialogs.confirm(
             [
               `Delete ${count} thread${count === 1 ? "" : "s"}?`,
-              "This permanently clears conversation history for these threads.",
+              "This permanently clears conversation history and deletes worktrees no other threads use.",
             ].join("\n"),
             { variant: "destructive" },
           ),
         );
         if (confirmed._tag === "Failure" || !confirmed.value) return;
       }
+      const deletionToast = toastManager.add({
+        type: "loading",
+        title: `Deleting ${count} thread${count === 1 ? "" : "s"}…`,
+        timeout: 0,
+      });
       const { deletedThreadKeys, firstFailure } = await deleteSelectedThreadEntries({
         entries: threadKeys.map((threadKey) => ({ threadKey })),
-        delete: async ({ threadKey }, deletedThreadKeys) => {
+        delete: async ({ threadKey }, deletedThreadKeys, deferDeletion) => {
           const thread = threadByKeyRef.current.get(threadKey);
           if (!thread) return null;
           return deleteThread(scopeThreadRef(thread.environmentId, thread.id), {
             deletedThreadKeys,
+            deferDeletion,
+            worktreeDeletionConfirmed: true,
           });
         },
       });
+      toastManager.close(deletionToast);
       if (firstFailure !== null) {
         const firstError = squashAtomCommandFailure(firstFailure);
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Failed to delete threads",
-            description: firstError instanceof Error ? firstError.message : "An error occurred.",
+            title: "Some threads could not be deleted",
+            description: `${firstError instanceof Error ? firstError.message : "An error occurred."} Remaining threads were kept; you can retry deleting them.`,
+            timeout: 0,
           }),
         );
       }

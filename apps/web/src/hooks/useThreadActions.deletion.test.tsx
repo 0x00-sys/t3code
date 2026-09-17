@@ -1,0 +1,354 @@
+import type { AtomCommandResult } from "@t3tools/client-runtime/state/runtime";
+import { scopeThreadRef, scopedThreadKey } from "@t3tools/client-runtime/environment";
+import { EnvironmentId, ProjectId, ThreadId } from "@t3tools/contracts";
+import * as Cause from "effect/Cause";
+import { AsyncResult } from "effect/unstable/reactivity";
+import { act, useLayoutEffect } from "react";
+import { create, type ReactTestRenderer } from "react-test-renderer";
+import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
+
+import { deleteSelectedThreadEntries } from "../components/Sidebar.logic";
+import { useThreadActions } from "./useThreadActions";
+
+const mocks = vi.hoisted(() => ({
+  confirm: vi.fn(async () => true),
+  run: vi.fn(),
+  readThreadShell: vi.fn(),
+  readProject: vi.fn(),
+  readEnvironmentThreadRefs: vi.fn(),
+  confirmThreadDelete: false,
+  archived: vi.fn(),
+}));
+vi.mock("@t3tools/client-runtime/state/runtime", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@t3tools/client-runtime/state/runtime")>()),
+  executeAtomQuery: mocks.archived,
+}));
+vi.mock("../state/use-atom-command", () => ({
+  useAtomCommand: (command: { label: string }) => (input: unknown) =>
+    mocks.run(command.label, input),
+}));
+vi.mock("../state/entities", () => ({
+  readThreadShell: mocks.readThreadShell,
+  readEnvironmentThreadRefs: mocks.readEnvironmentThreadRefs,
+  readProject: mocks.readProject,
+}));
+vi.mock("./useSettings", () => ({
+  useClientSettings: (select: (settings: object) => unknown) =>
+    select({ confirmThreadDelete: mocks.confirmThreadDelete, sidebarThreadSortOrder: "updatedAt" }),
+}));
+vi.mock("@tanstack/react-router", () => ({
+  useRouter: () => ({ state: { matches: [] } }),
+}));
+vi.mock("./useHandleNewThread", () => ({ useNewThreadHandler: () => vi.fn() }));
+vi.mock("../localApi", () => ({ readLocalApi: () => ({ dialogs: { confirm: mocks.confirm } }) }));
+vi.mock("../composerDraftStore", () => ({ useComposerDraftStore: () => vi.fn() }));
+vi.mock("../terminalUiStateStore", () => ({ useTerminalUiStateStore: () => vi.fn() }));
+vi.mock("../uiStateStore", () => ({ useUiStateStore: () => vi.fn() }));
+vi.mock("../lib/composerDraftUploads", () => ({ releaseComposerDraftUploads: vi.fn() }));
+vi.mock("../lib/archivedThreadsState", () => ({ refreshArchivedThreadsForEnvironment: vi.fn() }));
+
+const environmentId = EnvironmentId.make("local");
+const threads = ["one", "two", "three"].map((id) => ({
+  id: ThreadId.make(id),
+  environmentId,
+  projectId: ProjectId.make(`project-${id}`),
+  title: id,
+  session: null,
+  worktreePath: `/repo/${id}`,
+  createdAt: "2026-09-17T00:00:00.000Z",
+  updatedAt: "2026-09-17T00:00:00.000Z",
+}));
+const entries = threads.map((thread) => {
+  const threadRef = scopeThreadRef(environmentId, thread.id);
+  return { threadRef, threadKey: scopedThreadKey(threadRef) };
+});
+let actions: ReturnType<typeof useThreadActions>;
+let renderer: ReactTestRenderer;
+function Probe() {
+  const value = useThreadActions();
+  useLayoutEffect(() => {
+    actions = value;
+  });
+  return null;
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  mocks.confirmThreadDelete = false;
+  mocks.readProject.mockReturnValue({ workspaceRoot: "/repo" });
+  mocks.confirm.mockResolvedValue(true);
+  mocks.run.mockResolvedValue(AsyncResult.success(undefined));
+  mocks.archived.mockResolvedValue(AsyncResult.success({ threads: [] }));
+  // Keep the snapshot stale to exercise successful-deletion tracking.
+  mocks.readThreadShell.mockImplementation(
+    ({ threadId }) => threads.find((thread) => thread.id === threadId) ?? null,
+  );
+  mocks.readEnvironmentThreadRefs.mockReturnValue(entries.map((entry) => entry.threadRef));
+  act(() => {
+    renderer = create(<Probe />);
+  });
+});
+afterEach(() => {
+  act(() => renderer.unmount());
+  vi.unstubAllGlobals();
+});
+
+it("keeps conversations until worktree cleanup succeeds without blocking the rest of the batch", async () => {
+  mocks.readProject.mockImplementation(({ projectId }) => ({ workspaceRoot: `/${projectId}` }));
+  let startCleanup!: () => void;
+  const cleanupStarted = new Promise<void>((resolve) => {
+    startCleanup = resolve;
+  });
+  let finishCleanup!: () => void;
+  const releaseCleanup = new Promise<void>((resolve) => {
+    finishCleanup = resolve;
+  });
+  const deleted: string[] = [];
+  const removals: string[] = [];
+  mocks.run.mockImplementation(async (label, { input }) => {
+    if (label.endsWith(":thread:delete")) deleted.push(input.threadId);
+    if (label.endsWith(":remove-worktree")) {
+      removals.push(input.path);
+      if (removals.length === 3) startCleanup();
+      await releaseCleanup;
+    }
+    return AsyncResult.success(undefined);
+  });
+  const deletion = deleteSelectedThreadEntries({
+    entries,
+    delete: ({ threadRef }, deletedThreadKeys, deferDeletion) =>
+      actions.deleteThread(threadRef, { deletedThreadKeys, deferDeletion }),
+  });
+  await cleanupStarted;
+  expect(deleted).toEqual([]);
+  expect(removals).toEqual(["/repo/one", "/repo/two", "/repo/three"]);
+  expect(mocks.confirm).not.toHaveBeenCalled();
+  finishCleanup();
+  expect((await deletion).deletedThreadKeys.size).toBe(3);
+});
+
+it.each([false, true])(
+  "removes a shared worktree only if all its threads were deleted (failure=%s)",
+  async (failFirst) => {
+    mocks.readThreadShell.mockImplementation(({ threadId }) => ({
+      ...threads.find((thread) => thread.id === threadId),
+      worktreePath: "/repo/shared",
+    }));
+    mocks.run.mockImplementation(async (label, { input }) =>
+      failFirst && label.endsWith(":thread:delete") && input.threadId === "one"
+        ? AsyncResult.failure(Cause.fail(new Error("delete failed")))
+        : AsyncResult.success(undefined),
+    );
+    await deleteSelectedThreadEntries({
+      entries,
+      delete: ({ threadRef }, deletedThreadKeys, deferDeletion) =>
+        actions.deleteThread(threadRef, { deletedThreadKeys, deferDeletion }),
+    });
+    expect(
+      mocks.run.mock.calls.filter(([label]) => label.endsWith(":remove-worktree")),
+    ).toHaveLength(failFirst ? 0 : 1);
+  },
+);
+
+it("does not repeat a worktree confirmation already included in the bulk confirmation", async () => {
+  mocks.confirmThreadDelete = true;
+  act(() => renderer.update(<Probe />));
+  await actions.deleteThread(entries[0]!.threadRef, { worktreeDeletionConfirmed: true });
+  expect(mocks.confirm).not.toHaveBeenCalled();
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":remove-worktree"))).toBe(true);
+});
+
+it("still offers to keep a worktree for single deletion when confirmations are on", async () => {
+  mocks.confirmThreadDelete = true;
+  mocks.confirm.mockResolvedValue(false);
+  act(() => renderer.update(<Probe />));
+  await actions.deleteThread(entries[0]!.threadRef);
+  expect(mocks.confirm).toHaveBeenCalledOnce();
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":thread:delete"))).toBe(true);
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":remove-worktree"))).toBe(false);
+});
+
+it("keeps a worktree still used by an archived thread", async () => {
+  mocks.archived.mockResolvedValue(
+    AsyncResult.success({
+      threads: [{ id: ThreadId.make("archived"), worktreePath: "/repo/one" }],
+    }),
+  );
+  await actions.deleteThread(entries[0]!.threadRef);
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":remove-worktree"))).toBe(false);
+});
+
+it("keeps the conversation if archived threads cannot be checked", async () => {
+  mocks.archived.mockResolvedValue(AsyncResult.failure(Cause.fail(new Error("offline"))));
+  const result = await actions.deleteThread(entries[0]!.threadRef);
+  expect(result._tag).toBe("Failure");
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":remove-worktree"))).toBe(false);
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":thread:delete"))).toBe(false);
+});
+
+it("rechecks live references before deferred cleanup", async () => {
+  let cleanup: (() => Promise<AtomCommandResult<unknown, unknown>>) | undefined;
+  await actions.deleteThread(entries[0]!.threadRef, {
+    deferDeletion: (run) => {
+      cleanup = run;
+    },
+  });
+  mocks.readThreadShell.mockImplementation(({ threadId }) => ({
+    ...threads.find((thread) => thread.id === threadId),
+    worktreePath: "/repo/one",
+  }));
+  await cleanup!();
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":remove-worktree"))).toBe(false);
+});
+
+it("keeps a failed worktree's thread, finishes other deletions, and allows retry", async () => {
+  const failure = AsyncResult.failure(Cause.fail(new Error("worktree is locked")));
+  mocks.run.mockImplementation(async (label, { input }) =>
+    label.endsWith(":remove-worktree") && input.path === "/repo/two"
+      ? failure
+      : AsyncResult.success(undefined),
+  );
+  const result = await deleteSelectedThreadEntries({
+    entries,
+    delete: ({ threadRef }, deletedThreadKeys, deferDeletion) =>
+      actions.deleteThread(threadRef, { deletedThreadKeys, deferDeletion }),
+  });
+  expect(result.firstFailure).toBe(failure);
+  expect(result.deletedThreadKeys).toEqual(new Set([entries[0]!.threadKey, entries[2]!.threadKey]));
+  expect(
+    mocks.run.mock.calls
+      .filter(([label]) => label.endsWith(":thread:delete"))
+      .map(([, { input }]) => input.threadId),
+  ).toEqual(["one", "three"]);
+  expect(
+    mocks.run.mock.calls
+      .filter(([label]) => label.includes("terminal") && label.endsWith(":close"))
+      .every(([, { input }]) => input.deleteHistory === false),
+  ).toBe(true);
+  mocks.run.mockResolvedValue(AsyncResult.success(undefined));
+  expect((await actions.deleteThread(entries[1]!.threadRef))._tag).toBe("Success");
+  expect(
+    mocks.run.mock.calls
+      .filter(([label]) => label.endsWith(":thread:delete"))
+      .map(([, { input }]) => input.threadId),
+  ).toEqual(["one", "three", "two"]);
+});
+
+it("shares an in-flight deletion when the same thread is deleted again", async () => {
+  let finishCleanup!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    finishCleanup = resolve;
+  });
+  let startCleanup!: () => void;
+  const started = new Promise<void>((resolve) => {
+    startCleanup = resolve;
+  });
+  mocks.run.mockImplementation(async (label) => {
+    if (label.endsWith(":remove-worktree")) {
+      startCleanup();
+      await pending;
+    }
+    return AsyncResult.success(undefined);
+  });
+  const first = actions.deleteThread(entries[0]!.threadRef);
+  await started;
+  const second = actions.deleteThread(entries[0]!.threadRef);
+  finishCleanup();
+  await Promise.all([first, second]);
+  expect(mocks.run.mock.calls.filter(([label]) => label.endsWith(":remove-worktree"))).toHaveLength(
+    1,
+  );
+  expect(mocks.run.mock.calls.filter(([label]) => label.endsWith(":thread:delete"))).toHaveLength(
+    1,
+  );
+});
+
+it.each([":terminal:close", ":thread:stop-session"])(
+  "keeps the thread and files if %s fails",
+  async (failedOperation) => {
+    mocks.readThreadShell.mockImplementation(({ threadId }) => {
+      const thread = threads.find((thread) => thread.id === threadId);
+      return thread ? { ...thread, session: { status: "ready" } } : null;
+    });
+    mocks.run.mockImplementation(async (label) =>
+      label.endsWith(failedOperation)
+        ? AsyncResult.failure(Cause.fail(new Error("stop failed")))
+        : AsyncResult.success(undefined),
+    );
+    expect((await actions.deleteThread(entries[0]!.threadRef))._tag).toBe("Failure");
+    expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":remove-worktree"))).toBe(false);
+    expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":thread:delete"))).toBe(false);
+  },
+);
+
+it("rechecks shared references when a queued repository deletion actually starts", async () => {
+  let finishFirst!: () => void;
+  const firstPending = new Promise<void>((resolve) => {
+    finishFirst = resolve;
+  });
+  let startFirst!: () => void;
+  const firstStarted = new Promise<void>((resolve) => {
+    startFirst = resolve;
+  });
+  let scheduleSecond!: () => void;
+  const secondScheduled = new Promise<void>((resolve) => {
+    scheduleSecond = resolve;
+  });
+  mocks.run.mockImplementation(async (label, { input }) => {
+    if (label.endsWith(":remove-worktree") && input.path === "/repo/one") {
+      startFirst();
+      await firstPending;
+    }
+    return AsyncResult.success(undefined);
+  });
+  const deletion = deleteSelectedThreadEntries({
+    entries: entries.slice(0, 2),
+    delete: async ({ threadRef }, deletedThreadKeys, deferDeletion) => {
+      const result = await actions.deleteThread(threadRef, { deletedThreadKeys, deferDeletion });
+      if (threadRef.threadId === "two") scheduleSecond();
+      return result;
+    },
+  });
+  await Promise.all([firstStarted, secondScheduled]);
+  mocks.readThreadShell.mockImplementation(({ threadId }) => {
+    const thread = threads.find((entry) => entry.id === threadId);
+    return threadId === "three" ? { ...thread, worktreePath: "/repo/two" } : thread;
+  });
+  finishFirst();
+  expect((await deletion).deletedThreadKeys.size).toBe(2);
+  expect(
+    mocks.run.mock.calls
+      .filter(([label]) => label.endsWith(":remove-worktree"))
+      .map(([, { input }]) => input.path),
+  ).toEqual(["/repo/one"]);
+});
+
+it("retains a thread that changes worktrees while its reference check is pending", async () => {
+  let finishCheck!: (result: ReturnType<typeof AsyncResult.success<{ threads: [] }>>) => void;
+  const pending = new Promise<ReturnType<typeof AsyncResult.success<{ threads: [] }>>>(
+    (resolve) => {
+      finishCheck = resolve;
+    },
+  );
+  let startCheck!: () => void;
+  const started = new Promise<void>((resolve) => {
+    startCheck = resolve;
+  });
+  mocks.archived.mockImplementation(() => {
+    startCheck();
+    return pending;
+  });
+  const deletion = actions.deleteThread(entries[0]!.threadRef);
+  await started;
+  mocks.readThreadShell.mockImplementation(({ threadId }) => {
+    const thread = threads.find((entry) => entry.id === threadId);
+    return threadId === "one"
+      ? { ...thread, worktreePath: "/repo/new" }
+      : { ...thread, worktreePath: "/repo/one" };
+  });
+  finishCheck(AsyncResult.success({ threads: [] }));
+  expect((await deletion)._tag).toBe("Failure");
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":remove-worktree"))).toBe(false);
+  expect(mocks.run.mock.calls.some(([label]) => label.endsWith(":thread:delete"))).toBe(false);
+});

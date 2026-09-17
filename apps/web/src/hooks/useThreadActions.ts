@@ -4,7 +4,13 @@ import {
   scopeThreadRef,
   scopedThreadKey,
 } from "@t3tools/client-runtime/environment";
-import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
+import {
+  type AtomCommandResult,
+  createAtomCommandScheduler,
+  executeAtomQuery,
+  settlePromise,
+  squashAtomCommandFailure,
+} from "@t3tools/client-runtime/state/runtime";
 import { canSnooze, threadWokeAt } from "@t3tools/client-runtime/state/thread-settled";
 import { EnvironmentId, type ScopedThreadRef, ThreadId } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
@@ -15,6 +21,8 @@ import { useCallback, useMemo, useRef } from "react";
 
 import { getFallbackThreadIdAfterDelete, pinOrderKeyBetween } from "../components/Sidebar.logic";
 import { useComposerDraftStore } from "../composerDraftStore";
+import { appAtomRegistry } from "../rpc/atomRegistry";
+import { orchestrationEnvironment } from "../state/orchestration";
 import { terminalEnvironment } from "../state/terminal";
 import { threadEnvironment } from "../state/threads";
 import { vcsEnvironment } from "../state/vcs";
@@ -172,6 +180,8 @@ export async function navigateAfterThreadDeletion(navigate: () => Promise<void>)
   }
 }
 
+const deletionScheduler = createAtomCommandScheduler();
+
 export function useThreadActions() {
   const closeTerminal = useAtomCommand(terminalEnvironment.close);
   const archiveThreadMutation = useAtomCommand(threadEnvironment.archive, {
@@ -209,9 +219,6 @@ export function useThreadActions() {
   });
   const stopThreadSession = useAtomCommand(threadEnvironment.stopSession);
   const removeWorktree = useAtomCommand(vcsEnvironment.removeWorktree, {
-    reportFailure: false,
-  });
-  const refreshVcsStatus = useAtomCommand(vcsEnvironment.refreshStatus, {
     reportFailure: false,
   });
   const sidebarThreadSortOrder = useClientSettings((settings) => settings.sidebarThreadSortOrder);
@@ -311,7 +318,14 @@ export function useThreadActions() {
   );
 
   const deleteThread = useCallback(
-    async (target: ScopedThreadRef, opts: { deletedThreadKeys?: ReadonlySet<string> } = {}) => {
+    async (
+      target: ScopedThreadRef,
+      opts: {
+        deletedThreadKeys?: ReadonlySet<string>;
+        worktreeDeletionConfirmed?: boolean;
+        deferDeletion?: (deleteThread: () => Promise<AtomCommandResult<unknown, unknown>>) => void;
+      } = {},
+    ) => {
       const resolved = resolveThreadTarget(target);
       if (!resolved) {
         // Thread not in main store (e.g. archived thread) — dispatch delete directly.
@@ -355,15 +369,15 @@ export function useThreadActions() {
         : null;
       const canDeleteWorktree = orphanedWorktreePath !== null && threadProject !== null;
       const localApi = readLocalApi();
-      let shouldDeleteWorktree = false;
-      if (canDeleteWorktree && localApi) {
+      let shouldDeleteWorktree = !confirmThreadDelete || opts.worktreeDeletionConfirmed === true;
+      if (canDeleteWorktree && !shouldDeleteWorktree && localApi) {
         const confirmationResult = await settlePromise(() =>
           localApi.dialogs.confirm(
             [
               "This thread is the only one linked to this worktree:",
               displayWorktreePath ?? orphanedWorktreePath,
               "",
-              "Delete the worktree too?",
+              "Delete the worktree too? Cancel keeps the worktree but still deletes the thread.",
             ].join("\n"),
             { variant: "destructive" },
           ),
@@ -374,121 +388,149 @@ export function useThreadActions() {
         shouldDeleteWorktree = confirmationResult.value;
       }
 
-      if (thread.session && thread.session.status !== "stopped") {
-        await stopThreadSession({
+      const completeDeletion = async (): Promise<AtomCommandResult<unknown, unknown>> => {
+        if (thread.session && thread.session.status !== "stopped") {
+          const stopResult = await stopThreadSession({
+            environmentId: threadRef.environmentId,
+            input: { threadId: threadRef.threadId },
+          });
+          if (stopResult._tag === "Failure") return stopResult;
+        }
+
+        const closeResult = await closeTerminal({
+          environmentId: threadRef.environmentId,
+          input: { threadId: threadRef.threadId, deleteHistory: false },
+        });
+        if (closeResult._tag === "Failure") return closeResult;
+
+        if (shouldDeleteWorktree && orphanedWorktreePath && threadProject) {
+          // Archived threads are absent from the sidebar; refresh them before removing files.
+          const archived = await executeAtomQuery(
+            appAtomRegistry,
+            orchestrationEnvironment.archivedShellSnapshot({
+              environmentId: threadRef.environmentId,
+              input: {},
+            }),
+            { refresh: true, reportFailure: false },
+          );
+          if (archived._tag === "Failure") return archived;
+          const currentThread =
+            readThreadShell(threadRef) ??
+            archived.value.threads.find((entry) => entry.id === thread.id);
+          if (currentThread && currentThread.worktreePath?.trim() !== orphanedWorktreePath) {
+            return AsyncResult.failure(
+              Cause.fail(
+                new Error("The thread's worktree changed during deletion. Try deleting it again."),
+              ),
+            );
+          }
+          const remaining = [
+            ...readEnvironmentThreadRefs(threadRef.environmentId).flatMap((ref) => {
+              const shell = readThreadShell(ref);
+              return shell === null ? [] : [shell];
+            }),
+            ...archived.value.threads,
+          ].filter(
+            (entry) =>
+              !opts.deletedThreadKeys?.has(
+                scopedThreadKey(scopeThreadRef(threadRef.environmentId, entry.id)),
+              ),
+          );
+          if (
+            getOrphanedWorktreePathForThread([...remaining, thread], thread.id) ===
+            orphanedWorktreePath
+          ) {
+            const removeResult = await removeWorktree({
+              environmentId: threadRef.environmentId,
+              input: {
+                cwd: threadProject.workspaceRoot,
+                path: orphanedWorktreePath,
+                force: true,
+              },
+            });
+            if (removeResult._tag === "Failure") return removeResult;
+          }
+        }
+
+        const deletedThreadIds = deletedIds ?? new Set<ThreadId>();
+        const currentRouteThreadRef = getCurrentRouteThreadRef();
+        const shouldNavigateToFallback =
+          currentRouteThreadRef?.threadId === threadRef.threadId &&
+          currentRouteThreadRef.environmentId === threadRef.environmentId;
+        const fallbackThreadId = getFallbackThreadIdAfterDelete({
+          threads,
+          deletedThreadId: threadRef.threadId,
+          deletedThreadIds,
+          sortOrder: sidebarThreadSortOrder,
+        });
+        const deleteResult = await deleteThreadMutation({
           environmentId: threadRef.environmentId,
           input: { threadId: threadRef.threadId },
         });
-      }
-
-      await closeTerminal({
-        environmentId: threadRef.environmentId,
-        input: { threadId: threadRef.threadId, deleteHistory: true },
-      });
-
-      const deletedThreadIds = deletedIds ?? new Set<ThreadId>();
-      const currentRouteThreadRef = getCurrentRouteThreadRef();
-      const shouldNavigateToFallback =
-        currentRouteThreadRef?.threadId === threadRef.threadId &&
-        currentRouteThreadRef.environmentId === threadRef.environmentId;
-      const fallbackThreadId = getFallbackThreadIdAfterDelete({
-        threads,
-        deletedThreadId: threadRef.threadId,
-        deletedThreadIds,
-        sortOrder: sidebarThreadSortOrder,
-      });
-      const deleteResult = await deleteThreadMutation({
-        environmentId: threadRef.environmentId,
-        input: { threadId: threadRef.threadId },
-      });
-      if (deleteResult._tag === "Failure") {
-        return deleteResult;
-      }
-      refreshArchivedThreadsForEnvironment(threadRef.environmentId);
-      releaseComposerDraftUploads(threadRef);
-      clearComposerDraftForThread(threadRef);
-      clearProjectDraftThreadById(
-        scopeProjectRef(threadRef.environmentId, thread.projectId),
-        threadRef,
-      );
-      clearTerminalUiState(threadRef);
-
-      if (shouldNavigateToFallback) {
-        const fallbackThread = fallbackThreadId
-          ? readThreadShell(scopeThreadRef(threadRef.environmentId, fallbackThreadId))
-          : null;
-        await navigateAfterThreadDeletion(() =>
-          fallbackThread
-            ? router.navigate({
-                to: "/$environmentId/$threadId",
-                params: buildThreadRouteParams(
-                  scopeThreadRef(fallbackThread.environmentId, fallbackThread.id),
-                ),
-                replace: true,
-              })
-            : router.navigate({ to: "/", replace: true }),
+        if (deleteResult._tag === "Failure") {
+          return deleteResult;
+        }
+        refreshArchivedThreadsForEnvironment(threadRef.environmentId);
+        releaseComposerDraftUploads(threadRef);
+        clearComposerDraftForThread(threadRef);
+        clearProjectDraftThreadById(
+          scopeProjectRef(threadRef.environmentId, thread.projectId),
+          threadRef,
         );
-      }
+        clearTerminalUiState(threadRef);
 
-      if (!shouldDeleteWorktree || !orphanedWorktreePath || !threadProject) {
-        return deleteResult;
-      }
-
-      const removeResult = await removeWorktree({
-        environmentId: threadRef.environmentId,
-        input: {
-          cwd: threadProject.workspaceRoot,
-          path: orphanedWorktreePath,
-          force: true,
-        },
-      });
-      const refreshResult =
-        removeResult._tag === "Success"
-          ? await refreshVcsStatus({
-              environmentId: threadRef.environmentId,
-              input: { cwd: threadProject.workspaceRoot },
-            })
-          : null;
-      const cleanupFailure =
-        removeResult._tag === "Failure"
-          ? removeResult
-          : refreshResult?._tag === "Failure"
-            ? refreshResult
+        if (shouldNavigateToFallback) {
+          const fallbackThread = fallbackThreadId
+            ? readThreadShell(scopeThreadRef(threadRef.environmentId, fallbackThreadId))
             : null;
-      if (cleanupFailure) {
-        const removalFailed = removeResult._tag === "Failure";
-        const error = squashAtomCommandFailure(cleanupFailure);
-        const message = error instanceof Error ? error.message : "An error occurred.";
-        console.error("Worktree cleanup failed after thread deletion", {
-          threadId: threadRef.threadId,
-          projectCwd: threadProject.workspaceRoot,
-          worktreePath: orphanedWorktreePath,
-          error,
-        });
-        toastManager.add(
-          stackedThreadToast({
-            type: "error",
-            title: removalFailed
-              ? "Failed to delete worktree"
-              : "Worktree deleted, but Git status refresh failed",
-            description: removalFailed
-              ? `Could not remove ${displayWorktreePath ?? orphanedWorktreePath}. ${message}`
-              : message,
-          }),
+          await navigateAfterThreadDeletion(() =>
+            fallbackThread
+              ? router.navigate({
+                  to: "/$environmentId/$threadId",
+                  params: buildThreadRouteParams(
+                    scopeThreadRef(fallbackThread.environmentId, fallbackThread.id),
+                  ),
+                  replace: true,
+                })
+              : router.navigate({ to: "/", replace: true }),
+          );
+        }
+
+        return deleteResult;
+      };
+      const runDeletion = () =>
+        deletionScheduler.schedule(
+          appAtomRegistry,
+          { mode: "singleFlight", key: scopedThreadKey },
+          threadRef,
+          () =>
+            deletionScheduler.schedule(
+              appAtomRegistry,
+              shouldDeleteWorktree && threadProject && orphanedWorktreePath
+                ? {
+                    mode: "serial",
+                    key: () =>
+                      JSON.stringify([threadRef.environmentId, threadProject.workspaceRoot]),
+                  }
+                : { mode: "parallel" },
+              threadRef,
+              completeDeletion,
+            ),
         );
-        // The thread was deleted. Cleanup has its own toast; returning its
-        // failure would make callers incorrectly report a thread deletion error.
+      if (opts.deferDeletion && shouldDeleteWorktree && canDeleteWorktree) {
+        opts.deferDeletion(runDeletion);
+        return AsyncResult.success(undefined);
       }
-      return deleteResult;
+      return runDeletion();
     },
     [
       clearComposerDraftForThread,
       clearProjectDraftThreadById,
       clearTerminalUiState,
       closeTerminal,
+      confirmThreadDelete,
       deleteThreadMutation,
       getCurrentRouteThreadRef,
-      refreshVcsStatus,
       removeWorktree,
       router,
       resolveThreadTarget,
