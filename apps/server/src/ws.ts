@@ -1871,6 +1871,10 @@ const makeWsRpcLayer = (
                     ).pipe(
                       Effect.provide(worktreeDeletionContext),
                       Effect.provideService(
+                        OrchestrationEngine.OrchestrationEngineService,
+                        orchestrationEngine,
+                      ),
+                      Effect.provideService(
                         ProjectionSnapshotQuery.ProjectionSnapshotQuery,
                         projectionSnapshotQuery,
                       ),
@@ -3305,6 +3309,10 @@ const makeWsRpcLayer = (
             WS_METHODS.vcsRemoveWorktree,
             removeUnusedWorktree(input, gitWorkflow.removeWorktree(input)).pipe(
               Effect.provide(worktreeDeletionContext),
+              Effect.provideService(
+                OrchestrationEngine.OrchestrationEngineService,
+                orchestrationEngine,
+              ),
               Effect.provideService(
                 ProjectionSnapshotQuery.ProjectionSnapshotQuery,
                 projectionSnapshotQuery,

@@ -14,6 +14,7 @@ import * as Semaphore from "effect/Semaphore";
 
 import { GitVcsDriver } from "../vcs/GitVcsDriver.ts";
 import { ProjectionSnapshotQuery } from "./Services/ProjectionSnapshotQuery.ts";
+import { OrchestrationEngineService } from "./Services/OrchestrationEngine.ts";
 
 const locks = new Map<string, { semaphore: Semaphore.Semaphore; users: number }>();
 
@@ -31,21 +32,29 @@ export const removeUnusedWorktree = Effect.fn("removeUnusedWorktree")(function* 
       cwd: input.cwd,
       detail,
     });
-  const snapshot = yield* snapshots
-    .getCommandReadModel()
-    .pipe(Effect.mapError(() => error("Could not verify worktree references. Files were kept.")));
-  const target = path.resolve(input.path);
-  if (
-    snapshot.threads.some(
-      (thread) =>
-        thread.deletedAt === null &&
-        thread.worktreePath !== null &&
-        path.resolve(thread.worktreePath) === target,
-    )
-  ) {
-    return yield* error("This worktree is still used by a thread. Files were kept.");
-  }
-  yield* remove;
+  const engine = yield* OrchestrationEngineService;
+  return yield* engine.withWorktreeCleanup(
+    [input.path],
+    Effect.gen(function* () {
+      const snapshot = yield* snapshots
+        .getCommandReadModel()
+        .pipe(
+          Effect.mapError(() => error("Could not verify worktree references. Files were kept.")),
+        );
+      const target = path.resolve(input.path);
+      if (
+        snapshot.threads.some(
+          (thread) =>
+            thread.deletedAt === null &&
+            thread.worktreePath !== null &&
+            path.resolve(thread.worktreePath) === target,
+        )
+      ) {
+        return yield* error("This worktree is still used by a thread. Files were kept.");
+      }
+      yield* remove;
+    }),
+  );
 });
 
 /** Keep all files (including ignored files and the Git index) until deletion commits.
@@ -132,48 +141,56 @@ export const withThreadWorktreeDeletion = Effect.fn("withThreadWorktreeDeletion"
         });
       return yield* Effect.failCause(result.cause);
     }
-    // Dispatch can replay a receipt for an earlier incarnation. Only remove files
-    // after an authoritative read confirms the current thread and references are gone.
-    const committed = yield* snapshots.getCommandReadModel().pipe(Effect.exit);
-    const pendingCleanup = (retryable: boolean): DispatchResult => ({
-      ...result.value,
-      worktreeCleanupPending: { cwd, path: staged, retryable },
-    });
-    if (Exit.isFailure(committed)) return pendingCleanup(false);
-    const survivors = committed.value.threads.filter((entry) => entry.deletedAt === null);
-    const stagedInUse = survivors.some(
-      (entry) => entry.worktreePath !== null && path.resolve(entry.worktreePath) === staged,
+    const engine = yield* OrchestrationEngineService;
+    return yield* engine.withWorktreeCleanup(
+      [original, staged],
+      Effect.gen(function* () {
+        // Dispatch can replay a receipt for an earlier incarnation. Only remove files
+        // after an authoritative read confirms the current thread and references are gone.
+        const committed = yield* snapshots.getCommandReadModel().pipe(Effect.exit);
+        const pendingCleanup = (retryable: boolean): DispatchResult => ({
+          ...result.value,
+          worktreeCleanupPending: { cwd, path: staged, retryable },
+        });
+        if (Exit.isFailure(committed)) return pendingCleanup(false);
+        const survivors = committed.value.threads.filter((entry) => entry.deletedAt === null);
+        const stagedInUse = survivors.some(
+          (entry) => entry.worktreePath !== null && path.resolve(entry.worktreePath) === staged,
+        );
+        if (survivors.some((entry) => entry.id === command.threadId)) {
+          if (!stagedInUse) yield* restore;
+          return yield* new OrchestrationDispatchCommandError({
+            message:
+              "The current thread was not deleted. Its files were kept; refresh before retrying.",
+          });
+        }
+        // A new thread can have selected the staged checkout from Git's worktree list.
+        // Keep its path intact, without offering destructive cleanup for shared files.
+        if (stagedInUse) return result.value;
+        if (
+          survivors.some(
+            (entry) => entry.worktreePath !== null && path.resolve(entry.worktreePath) === original,
+          )
+        ) {
+          const recovery = yield* restore.pipe(Effect.exit);
+          return Exit.isFailure(recovery) ? pendingCleanup(false) : result.value;
+        }
+        // The thread is committed as deleted. A cleanup error must not masquerade as
+        // a failed deletion; return the preserved staging path for an explicit retry.
+        const cleanup = yield* git
+          .removeWorktree({ cwd, path: staged, force: true })
+          .pipe(Effect.exit);
+        if (Exit.isFailure(cleanup)) {
+          yield* Effect.logWarning("Deleted thread has pending worktree cleanup", {
+            threadId: command.threadId,
+            cwd,
+            path: staged,
+          });
+          return pendingCleanup(true);
+        }
+        return result.value;
+      }),
     );
-    if (survivors.some((entry) => entry.id === command.threadId)) {
-      if (!stagedInUse) yield* restore;
-      return yield* new OrchestrationDispatchCommandError({
-        message:
-          "The current thread was not deleted. Its files were kept; refresh before retrying.",
-      });
-    }
-    // A new thread can have selected the staged checkout from Git's worktree list.
-    // Keep its path intact, without offering destructive cleanup for shared files.
-    if (stagedInUse) return result.value;
-    if (
-      survivors.some(
-        (entry) => entry.worktreePath !== null && path.resolve(entry.worktreePath) === original,
-      )
-    ) {
-      const recovery = yield* restore.pipe(Effect.exit);
-      return Exit.isFailure(recovery) ? pendingCleanup(false) : result.value;
-    }
-    // The thread is committed as deleted. A cleanup error must not masquerade as
-    // a failed deletion; return the preserved staging path for an explicit retry.
-    const cleanup = yield* git.removeWorktree({ cwd, path: staged, force: true }).pipe(Effect.exit);
-    if (Exit.isFailure(cleanup)) {
-      yield* Effect.logWarning("Deleted thread has pending worktree cleanup", {
-        threadId: command.threadId,
-        cwd,
-        path: staged,
-      });
-      return pendingCleanup(true);
-    }
-    return result.value;
   }).pipe(
     Effect.uninterruptible,
     lock.semaphore.withPermits(1),

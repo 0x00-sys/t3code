@@ -21,8 +21,12 @@ import { createEmptyReadModel, projectEvent } from "./projector.ts";
 import { ProjectionSnapshotQuery } from "./Services/ProjectionSnapshotQuery.ts";
 import { removeUnusedWorktree, withThreadWorktreeDeletion } from "./threadWorktreeDeletion.ts";
 import { PersistenceSqlError } from "../persistence/Errors.ts";
+import { OrchestrationEngineService } from "./Services/OrchestrationEngine.ts";
 
-const TestLayer = Git.layer.pipe(
+const TestLayer = Layer.merge(
+  Git.layer,
+  Layer.mock(OrchestrationEngineService)({ withWorktreeCleanup: (_paths, effect) => effect }),
+).pipe(
   Layer.provide(ServerConfig.layerTest(process.cwd(), { prefix: "t3-delete-test-" })),
   Layer.provideMerge(NodeServices.layer),
 );
